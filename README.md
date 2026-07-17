@@ -58,11 +58,19 @@ Key production settings for the web app:
 - `RESEND_API_KEY` — transactional mail from **info@cosmographic.store**
 - `SHOPIFY_WEBHOOK_SECRET` — HMAC for `orders/create` CRM ingestion
 - `EMAIL_DRY_RUN=true` — safe local mode (no outbound mail)
+- `NEXT_PUBLIC_APP_URL` — absolute URLs for `_print_front_url` / `_print_back_url`
+- `SHOPIFY_PERSONALIZED_COLLECTION_HANDLE` — catalog redirect after personalization
 
 ### Shopify
 
-Setup guide: [`docs/shopify-setup.md`](docs/shopify-setup.md)
+Setup guide: [`docs/shopify-setup.md`](docs/shopify-setup.md)  
+Personalization engine: [`docs/personalization-engine.md`](docs/personalization-engine.md)  
+Production ops: [`docs/PRODUCTION.md`](docs/PRODUCTION.md)  
+Readiness audit: [`docs/PRODUCTION_READINESS_AUDIT.md`](docs/PRODUCTION_READINESS_AUDIT.md)
 
 - Cart / checkout: `POST /api/cart`
+- Session handoff: `POST /api/session` · `GET /api/session/{id}`
 - Design asset: `POST /api/design` · `GET /api/design/{visualId}?format=svg`
 - Webhook: `https://<your-host>/api/webhooks/shopify/orders-create`
+- Theme script: [`docs/shopify-session-personalization.liquid`](docs/shopify-session-personalization.liquid)
+# cosmographic-natal-customizer
