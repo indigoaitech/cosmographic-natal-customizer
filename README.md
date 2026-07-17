@@ -75,3 +75,4 @@ Readiness audit: [`docs/PRODUCTION_READINESS_AUDIT.md`](docs/PRODUCTION_READINES
 - Theme script: [`docs/shopify-session-personalization.liquid`](docs/shopify-session-personalization.liquid)
 # cosmographic-natal-customizer
 # cosmographic-natal-customizer
+# cosmographic-natal-customizer
