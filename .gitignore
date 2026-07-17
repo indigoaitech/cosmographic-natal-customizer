@@ -17,3 +17,5 @@ apps/web/data/designs/
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm
+.vercel
+.env*

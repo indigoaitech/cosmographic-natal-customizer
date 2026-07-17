@@ -10,6 +10,7 @@ import {
   buildOrderConfirmationEmail,
   sendStoreEmail,
 } from "@/lib/email/mailer";
+import { submitPersonalizedPrintifyOrder } from "@/lib/printify/client";
 
 export const runtime = "nodejs";
 
@@ -17,6 +18,7 @@ export const runtime = "nodejs";
  * Shopify `orders/create` webhook.
  * - Verifies HMAC
  * - Upserts CRM row (name, email, birth data from line-item properties)
+ * - Attempts Printify personalized fulfillment (stub until API keys set)
  * - Sends post-purchase mail from info@cosmographic.store
  */
 export async function POST(req: NextRequest) {
@@ -63,6 +65,21 @@ export async function POST(req: NextRequest) {
     source: "shopify_order",
   });
 
+  let printify: Awaited<ReturnType<typeof submitPersonalizedPrintifyOrder>> | null =
+    null;
+  if (
+    extracted.sessionId &&
+    extracted.printFrontUrl &&
+    extracted.printBackUrl
+  ) {
+    printify = await submitPersonalizedPrintifyOrder({
+      sessionId: extracted.sessionId,
+      printFrontUrl: extracted.printFrontUrl,
+      printBackUrl: extracted.printBackUrl,
+      shopifyOrderId: extracted.shopifyOrderId || undefined,
+    });
+  }
+
   const mailContent = buildOrderConfirmationEmail({
     firstName: extracted.firstName,
     orderName: order.name,
@@ -85,6 +102,8 @@ export async function POST(req: NextRequest) {
     ok: true,
     customerId: customer.id,
     email: customer.email,
+    sessionId: extracted.sessionId,
+    printify,
     mail,
   });
 }

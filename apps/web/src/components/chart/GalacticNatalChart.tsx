@@ -2,6 +2,11 @@
 
 import { useId, useMemo } from "react";
 
+/**
+ * @deprecated Experimental 15×19@300 DPI galactic renderer — not on commerce path.
+ * Primary print assets: ClassicPrintNatalChart + BackPlacementPrint (+ print/artboard.ts).
+ */
+
 import {
   GalacticFilters,
   filterUrl,
@@ -46,6 +51,10 @@ type GalacticNatalChartProps = {
 /**
  * Cosmographic natal chart — Printify DTG 15×19 @ 300 DPI.
  * Structural shell is fixed; Swiss Ephemeris data maps into the tilted disc.
+ */
+/**
+ * @deprecated Experimental 15×19@300 DPI galactic renderer — not on commerce path.
+ * Primary print assets: ClassicPrintNatalChart + BackPlacementPrint via print/artboard.ts.
  */
 export function GalacticNatalChart({
   chart,

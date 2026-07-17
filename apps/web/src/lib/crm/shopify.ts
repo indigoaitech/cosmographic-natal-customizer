@@ -62,6 +62,10 @@ export function extractBirthDataFromOrder(order: ShopifyOrderWebhook): {
   birthCity: string | null;
   birthCountry: string | null;
   designOption: string | null;
+  sessionId: string | null;
+  printFrontUrl: string | null;
+  printBackUrl: string | null;
+  visualId: string | null;
   marketingOptIn: boolean;
   shopifyCustomerId: string | null;
   shopifyOrderId: string | null;
@@ -96,6 +100,10 @@ export function extractBirthDataFromOrder(order: ShopifyOrderWebhook): {
     birthCity: props._birth_city || props.birth_city || null,
     birthCountry: props._birth_country || props.birth_country || null,
     designOption: props._design_option || props.design_option || null,
+    sessionId: props._session_id || props.session_id || null,
+    printFrontUrl: props._print_front_url || props.print_front_url || null,
+    printBackUrl: props._print_back_url || props.print_back_url || null,
+    visualId: props._visual_id || props.visual_id || null,
     marketingOptIn: Boolean(order.customer?.accepts_marketing),
     shopifyCustomerId: order.customer?.id != null ? String(order.customer.id) : null,
     shopifyOrderId: order.id != null ? String(order.id) : null,

@@ -1,0 +1,174 @@
+{% comment %}
+  Cosmographic — Horizon-ready session personalization
+  =====================================================================
+  PASTE LOCATION (as requested):
+  Online Store → Themes → … → Edit code
+  → layout/theme.liquid
+  → Immediately ABOVE the closing </body> tag
+  → Save
+
+  Also works as Custom liquid on the personalized collection template.
+
+  Requires: ?session_id=UUID on the URL
+  Fetches: https://www.cosmographic.store/api/session/{id}?format=preview
+{% endcomment %}
+
+<script>
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var sessionId = params.get("session_id");
+  if (!sessionId) return;
+
+  var CUSTOMIZER_ORIGIN = "https://www.cosmographic.store";
+
+  function applyHiddenProps(root, session) {
+    var fields = {
+      "_session_id": session.sessionId,
+      "_visual_id": session.visualIdFront,
+      "_print_front_url": session.printFrontUrl,
+      "_print_back_url": session.printBackUrl,
+      "_date_of_birth": session.birth && session.birth.dateOfBirth,
+      "_time_of_birth": session.birth && session.birth.timeOfBirth,
+      "_birth_city": session.birth && session.birth.city,
+      "_birth_country": session.birth && session.birth.country,
+      "_chart_summary": session.chartSummary
+    };
+
+    var form =
+      (root &&
+        root.querySelector &&
+        root.querySelector('form[action*="/cart/add"]')) ||
+      document.querySelector('form[action*="/cart/add"]') ||
+      document;
+
+    Object.keys(fields).forEach(function (key) {
+      var val = fields[key];
+      if (val == null || val === "") return;
+      var sel = 'input[name="properties[' + key + ']"]';
+      var input = form.querySelector(sel);
+      if (!input) {
+        input = document.createElement("input");
+        input.type = "hidden";
+        input.name = "properties[" + key + "]";
+        if (form !== document && form.appendChild) form.appendChild(input);
+        else document.body.appendChild(input);
+      }
+      input.value = String(val);
+    });
+  }
+
+  /** Horizon / responsive images: strip srcset so overlay src wins reliably */
+  function normalizeProductImage(img) {
+    img.removeAttribute("srcset");
+    img.removeAttribute("sizes");
+    img.loading = "eager";
+    img.decoding = "sync";
+  }
+
+  function whenImageReady(img, cb) {
+    if (img.complete && img.naturalWidth > 0) {
+      cb();
+      return;
+    }
+    var done = false;
+    function finish() {
+      if (done) return;
+      done = true;
+      img.removeEventListener("load", finish);
+      img.removeEventListener("error", finish);
+      cb();
+    }
+    img.addEventListener("load", finish);
+    img.addEventListener("error", finish);
+    // Fallback if neither fires (cached / broken)
+    setTimeout(finish, 1200);
+  }
+
+  function overlayCard(card, session, index) {
+    if (card.getAttribute("data-cg-session") === session.sessionId) return;
+    card.setAttribute("data-cg-session", session.sessionId);
+
+    var img =
+      card.querySelector(
+        "img.preview__image, img.motion-reduce, img.product-card__image, img.product__media-item, img"
+      ) || null;
+    if (!img) return;
+
+    normalizeProductImage(img);
+
+    whenImageReady(img, function () {
+      if (card.querySelector(".cg-session-overlay")) return;
+
+      var wrap = document.createElement("div");
+      wrap.className = "cg-session-overlay";
+      wrap.style.cssText =
+        "position:relative;display:block;width:100%;isolation:isolate;overflow:hidden;";
+
+      var art = document.createElement("img");
+      art.alt = "Your natal chart";
+      art.src =
+        index % 2 === 0 ? session.previewFrontUrl : session.previewBackUrl;
+      art.removeAttribute("srcset");
+      art.style.cssText =
+        "position:absolute;left:24%;top:22%;width:52%;height:auto;mix-blend-mode:multiply;pointer-events:none;z-index:2;opacity:0.92;";
+
+      if (img.parentNode) {
+        img.parentNode.insertBefore(wrap, img);
+        wrap.appendChild(img);
+        wrap.appendChild(art);
+      }
+
+      applyHiddenProps(card, session);
+    });
+  }
+
+  function injectMockups(session) {
+    var cards = document.querySelectorAll(
+      "[data-cosmographic-mockup], .product-card, .card-wrapper, .grid__item, .product-grid__item, product-card, .product-grid > *"
+    );
+
+    if (!cards.length) {
+      console.warn("[Cosmographic] no product cards found to overlay");
+    }
+
+    cards.forEach(function (card, i) {
+      overlayCard(card, session, i);
+    });
+
+    applyHiddenProps(document, session);
+  }
+
+  function run() {
+    fetch(
+      CUSTOMIZER_ORIGIN +
+        "/api/session/" +
+        encodeURIComponent(sessionId) +
+        "?format=preview",
+      { credentials: "omit" }
+    )
+      .then(function (r) {
+        if (!r.ok) throw new Error("session " + r.status);
+        return r.json();
+      })
+      .then(injectMockups)
+      .catch(function (err) {
+        console.warn("[Cosmographic] session load failed", err);
+      });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", run);
+  } else {
+    run();
+  }
+})();
+</script>
+
+<style>
+  .cg-session-overlay {
+    max-width: 100%;
+  }
+  .cg-session-overlay img[alt="Your natal chart"] {
+    filter: contrast(1.05);
+  }
+</style>

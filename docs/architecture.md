@@ -1,87 +1,90 @@
-# Architecture — Cosmographic Natal Customizer
+# Architecture — Cosmographic Personalized POD Engine
+
+Master spec compliance map for Cosmographic.store.
 
 ## System overview
 
 ```text
-┌─────────────────┐     BFF      ┌──────────────────────┐
-│  Next.js Web    │─────────────▶│  /api/chart          │
-│  (customizer)   │              │  /api/crm/leads      │
-│                 │              │  /api/webhooks/…     │
-└────────┬────────┘              └──────────┬───────────┘
-         │                                  │
-         │ Shopify Storefront               │ HTTP
-         ▼                                  ▼
-┌─────────────────┐              ┌──────────────────────┐
-│ cosmographic    │              │ Ephemeris Service    │
-│ .store checkout │              │ FastAPI + pyswisseph │
-└────────┬────────┘              └──────────┬───────────┘
-         │ orders/create webhook            │
-         ▼                                  ▼
-┌─────────────────┐              Interpretations dictionary
-│ SQLite CRM      │              + Swiss Ephemeris positions
-│ + Resend mail   │
-│ info@cosmo…     │
-└─────────────────┘
+┌──────────────────────┐   validate    ┌─────────────────────┐
+│  Next.js Portal      │──────────────▶│  /api/chart (BFF)   │
+│  Birth form + UX     │               └──────────┬──────────┘
+└──────────┬───────────┘                          │
+           │                                      ▼
+           │                           ┌─────────────────────┐
+           │                           │ Ephemeris Service   │
+           │                           │ Swiss Ephemeris +   │
+           │                           │ Nominatim + TZ      │
+           │                           └──────────┬──────────┘
+           │                                      │ ChartPayload
+           ▼                                      ▼
+┌──────────────────────┐   SVG serialize  ┌─────────────────────┐
+│ SVG Render Engine    │─────────────────▶│ Asset / Session     │
+│ Front wheel          │  300 DPI meta    │ /api/session        │
+│ Back table + logo    │                  │ design storage      │
+└──────────────────────┘                  └──────────┬──────────┘
+                                                     │ session_id
+                                                     ▼
+                                          ┌─────────────────────┐
+                                          │ Shopify personalized│
+                                          │ collection + theme  │
+                                          │ line-item props     │
+                                          └──────────┬──────────┘
+                                                     │ orders/create
+                                                     ▼
+                                          ┌─────────────────────┐
+                                          │ Printify client     │
+                                          │ (wire API token)    │
+                                          └─────────────────────┘
 ```
 
-## Natal chart computation pipeline
+## Module map (apps/web/src/lib)
 
-1. **Validate** birth date, local time, location (city/country).
-2. **Geocode** → latitude / longitude (Nominatim, cached).
-3. **Resolve timezone** from lat/lon (`timezonefinder`) → IANA zone.
-4. **Convert** local civil time → UTC using zone rules (DST-aware via `zoneinfo`).
-5. **Julian Day** (UT) for Swiss Ephemeris.
-6. **Compute** planets, houses, angles, aspects.
-7. **Enrich** with static dictionary interpretations (planet×sign, planet×house, house×sign).
-8. **Return** `ChartPayload` for Option A SVG + purchase-page summary table.
+| Spec module | Path |
+|-------------|------|
+| Validation | `validation/birth.ts` |
+| Errors + recovery | `errors/appError.ts` |
+| Logging | `logging/logger.ts` |
+| Analytics | `analytics/track.ts` |
+| Catalog / SKUs | `catalog/products.ts` |
+| Print artboards @ 300 DPI | `print/artboard.ts` |
+| Session | `session/*` |
+| Privacy / GDPR erase | `session/privacy.ts` |
+| CORS | `security/cors.ts` |
+| Shopify | `shopify/*` |
+| Print provider | `printify/client.ts` |
+| Cloud storage | `storage/cloud.ts` |
+| Chart geometry/themes | `chart/*` |
 
-## API surface (ephemeris)
+## Ephemeris (services/ephemeris)
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| GET | `/v1/health` | Liveness + sweph version |
-| POST | `/v1/geocode` | Place → coordinates |
-| POST | `/v1/timezone` | Lat/lon + local DT → IANA TZ + UTC offset |
-| POST | `/v1/natal-chart` | Full natal computation + interpretation rows |
+- `/v1/natal-chart` — Swiss Ephemeris only (`FLG_SWIEPH`)
+- `/v1/geocode` — primary hit
+- `/v1/geocode/search` — candidate list for disambiguation
+- `/v1/timezone` — DST-aware civil time → UTC
 
-## Placement dictionary
+## Commerce path (canonical)
 
-`services/ephemeris/app/interpretations/dictionary.py` — O(1) lookup maps with curated overrides.
-Rendered on the customizer as **Placement highlights**.
+1. Generate chart
+2. Preview front/back + product catalog
+3. **Create My Personalized Products** → `POST /api/session`
+4. Redirect `?session_id=` to Shopify collection
+5. Theme liquid injects mockups + line props
+6. Checkout → webhook → Printify stub / CRM / email
 
-## Cosmographic print engine (apps/web)
+Advanced single-variant `/api/cart` remains behind a disclosure on the portal.
 
-| Spec | Value |
-|------|-------|
-| Artboard | 15″ × 19″ @ 300 DPI (4500 × 5700 px) |
-| Chart diameter | 85% of canvas height |
-| Camera | Fixed tilt (pitch/yaw/roll) — structural shell locked |
-| Strokes | DTG minimum weights in `lib/chart/pod.ts` |
-| FX | Organic neon tubes + `feGaussianBlur` / `feMerge` filters |
+## Privacy
 
-Components: `GalacticNatalChart`, `GalacticStructuralShell`, `GalacticFilters`.
-Ephemeris positions map into the tilted disc without moving the outer matrix.
+- `/privacy` policy page
+- `DELETE /api/session/:id` erasure
+- CORS allowlist (no `*` in production path)
+- Chart snapshot omitted from disk unless `SESSION_STORE_CHART_SNAPSHOT=1`
+- Structured logs redact birth PII fields
 
-## Shopify handoff
+## Still wiring for full production POD
 
-Line-item properties for checkout + CRM:
-
-- `_design_option`, `_print_side`, `_visual_id`, `_chart_summary`
-- `_date_of_birth`, `_time_of_birth`, `_birth_city`, `_birth_country`
-
-## CRM + post-purchase email
-
-| Piece | Location |
-|-------|----------|
-| Lead capture | `POST /api/crm/leads` (requires marketing opt-in) |
-| Order webhook | `POST /api/webhooks/shopify/orders-create` |
-| SQLite CRM | `apps/web/data/crm.sqlite` |
-| Mail from | **info@cosmographic.store** via Resend |
-
-Webhook: verify HMAC → upsert name/email/DOB → send confirmation from the store domain.
-
-## Security notes
-
-- Shopify tokens and ephemeris URL stay server-side.
-- Marketing storage requires explicit opt-in (or Shopify `accepts_marketing`).
-- Never send store mail from personal Gmail — only `info@cosmographic.store`.
+- Cloudinary/S3 upload adapter body
+- Printify V1 order create HTTP calls
+- True fabric displacement / Printify Mockup Generator
+- SVG→PNG @ 300 DPI (resvg) for vendors rejecting SVG
+- Google Places (Nominatim search covers disambiguation today)

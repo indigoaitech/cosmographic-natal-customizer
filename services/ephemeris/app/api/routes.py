@@ -3,7 +3,11 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 
 from app.ephemeris.calculator import compute_natal_chart, swe_version
-from app.geo.geocode import geocode_or_http
+from app.geo.geocode import (
+    GeocodeSearchResponse,
+    geocode_or_http,
+    geocode_search_or_http,
+)
 from app.geo.timezone import resolve_timezone
 from app.models.schemas import (
     ChartPayload,
@@ -35,6 +39,23 @@ def geocode_endpoint(body: GeocodeRequest) -> GeocodeResponse:
             detail="Provide query, or both city and country.",
         )
     return geocode_or_http(city=body.city, country=body.country, query=body.query)
+
+
+@router.post(
+    "/geocode/search",
+    response_model=GeocodeSearchResponse,
+    response_model_by_alias=True,
+)
+def geocode_search_endpoint(body: GeocodeRequest) -> GeocodeSearchResponse:
+    """Return multiple candidates so the UI can disambiguate birthplaces."""
+    if not body.query and not (body.city and body.country):
+        raise HTTPException(
+            status_code=422,
+            detail="Provide query, or both city and country.",
+        )
+    return geocode_search_or_http(
+        city=body.city, country=body.country, query=body.query, limit=5
+    )
 
 
 @router.post("/timezone", response_model=TimezoneResponse, response_model_by_alias=True)

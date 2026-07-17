@@ -29,6 +29,9 @@ const OPTIONS: Array<{
   },
 ];
 
+/**
+ * @deprecated Orphaned A/B picker — DesignPreview Print/Cosmo toggle is canonical.
+ */
 export function DesignPicker({ value, onChange }: DesignPickerProps) {
   return (
     <div className="grid gap-3 sm:grid-cols-2">

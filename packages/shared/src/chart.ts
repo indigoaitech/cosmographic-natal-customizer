@@ -97,4 +97,7 @@ export interface CartCustomization {
   printSide: PrintSide;
   visualId: string;
   chartSummary?: string;
+  sessionId?: string;
+  printFrontUrl?: string;
+  printBackUrl?: string;
 }

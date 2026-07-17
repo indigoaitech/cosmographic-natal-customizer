@@ -1,16 +1,28 @@
 "use client";
 
 import { FormEvent, Suspense, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
+import { ProductCatalog } from "@/components/catalog/ProductCatalog";
+import { BackPlacementPrint } from "@/components/chart/BackPlacementPrint";
 import { DesignPreview, type ChartStyle } from "@/components/chart/DesignPreview";
 import { PlacementSummaryTable } from "@/components/chart/PlacementSummaryTable";
 import { CheckoutPanel } from "@/components/checkout/CheckoutPanel";
+import { PersonalizeProductsCTA } from "@/components/checkout/PersonalizeProductsCTA";
+import { ProductShowcase } from "@/components/landing/ProductShowcase";
 import {
-  TShirtMockup,
+  GarmentPreview,
+  type GarmentKind,
   type PrintSide,
-} from "@/components/mockup/TShirtMockup";
+} from "@/components/mockup/GarmentPreview";
+import { track } from "@/lib/analytics/track";
+import type { ProductKind } from "@/lib/catalog/products";
 import type { ChartPayload } from "@/lib/chart/types";
+import {
+  formatValidationError,
+  validateBirthInput,
+} from "@/lib/validation/birth";
 
 type BirthFields = {
   dateOfBirth: string;
@@ -19,16 +31,25 @@ type BirthFields = {
   country: string;
 };
 
+function productToGarment(kind: ProductKind): GarmentKind {
+  if (kind === "hoodie" || kind === "crew") return kind;
+  return "tee";
+}
+
 function HomePageInner() {
   const searchParams = useSearchParams();
   const productVariantId = searchParams.get("variant")?.trim() || undefined;
+  const resumeSession = searchParams.get("session_id")?.trim() || undefined;
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [recovery, setRecovery] = useState<string | null>(null);
   const [chart, setChart] = useState<ChartPayload | null>(null);
   const [crmNote, setCrmNote] = useState<string | null>(null);
   const [printSide, setPrintSide] = useState<PrintSide>("front");
   const [chartStyle, setChartStyle] = useState<ChartStyle>("print");
+  const [productKind, setProductKind] = useState<ProductKind>("tee");
+  const [showAdvancedCheckout, setShowAdvancedCheckout] = useState(false);
   const [birth, setBirth] = useState<BirthFields>({
     dateOfBirth: "",
     timeOfBirth: "",
@@ -40,6 +61,7 @@ function HomePageInner() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setRecovery(null);
     setCrmNote(null);
     setChart(null);
 
@@ -54,7 +76,16 @@ function HomePageInner() {
     const lastName = String(fd.get("lastName") || "").trim();
     const marketingOptIn = fd.get("marketingOptIn") === "on";
 
-    setBirth({ dateOfBirth, timeOfBirth, city, country });
+    const birthFields = { dateOfBirth, timeOfBirth, city, country };
+    setBirth(birthFields);
+
+    const clientErrors = validateBirthInput(birthFields);
+    if (clientErrors.length) {
+      setError(formatValidationError(clientErrors));
+      setRecovery(clientErrors[0]?.recovery || null);
+      setLoading(false);
+      return;
+    }
 
     const payload = {
       dateOfBirth,
@@ -71,13 +102,17 @@ function HomePageInner() {
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(
-          typeof data.detail === "string"
-            ? data.detail
-            : "Chart calculation failed",
+        throw Object.assign(
+          new Error(
+            typeof data.detail === "string"
+              ? data.detail
+              : "Chart calculation failed",
+          ),
+          { recovery: typeof data.recovery === "string" ? data.recovery : null },
         );
       }
       setChart(data as ChartPayload);
+      track("chart_generate_succeeded");
 
       if (marketingOptIn && email) {
         const leadRes = await fetch("/api/crm/leads", {
@@ -107,6 +142,12 @@ function HomePageInner() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
+      setRecovery(
+        err && typeof err === "object" && "recovery" in err
+          ? String((err as { recovery?: string }).recovery || "")
+          : "Check birth city/country spelling and retry.",
+      );
+      track("chart_generate_failed");
     } finally {
       setLoading(false);
     }
@@ -126,19 +167,30 @@ function HomePageInner() {
               style={{ boxShadow: "var(--glow-blue)" }}
             />
             <p className="font-mono text-[10px] uppercase tracking-[0.32em] text-[var(--color-electric-blue)]">
-              Cosmographic Store
+              Cosmographic · Personalized POD Engine
             </p>
           </div>
           <h1 className="text-glow-blue max-w-3xl text-4xl font-semibold tracking-tight text-[var(--color-star)] sm:text-5xl lg:text-[3.25rem] lg:leading-[1.1]">
-            Natal Chart T-Shirt Customizer
+            Birth data → your sky → your products
           </h1>
           <p className="max-w-2xl text-base leading-relaxed text-[var(--color-muted)]">
-            Map your sky with Swiss Ephemeris, preview your flat natal
-            astrolabe, then flip FRONT / BACK apparel placement.
+            Validated birth details · Swiss Ephemeris · print-ready front wheel +
+            back table @ 300 DPI · realistic garment preview · personalized
+            Shopify catalog. Zero manual uploads.
           </p>
+          {resumeSession && (
+            <p className="font-mono text-[10px] text-[var(--color-electric-blue)]">
+              Resuming session · {resumeSession}
+            </p>
+          )}
         </header>
 
-        <section className="panel-glass grid gap-8 p-5 sm:p-7 lg:grid-cols-[minmax(0,340px)_1fr]">
+        {!chart && <ProductShowcase />}
+
+        <section
+          id="birth-form"
+          className="panel-glass grid gap-8 p-5 sm:p-7 lg:grid-cols-[minmax(0,340px)_1fr]"
+        >
           <form className="flex flex-col gap-4" onSubmit={onSubmit}>
             <div>
               <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-[var(--color-neon-pink-soft)]">
@@ -147,6 +199,10 @@ function HomePageInner() {
               <h2 className="mt-1 text-lg font-medium text-[var(--color-electric-blue)]">
                 Birth details
               </h2>
+              <p className="mt-1 text-xs text-[var(--color-muted)]">
+                Timezone is derived from birthplace via Swiss Ephemeris pipeline
+                (Nominatim + timezonefinder).
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -199,10 +255,10 @@ function HomePageInner() {
               />
               <span>
                 Save my name, email, and birth date securely for Cosmographic birthday
-                updates. Emails from{" "}
-                <span className="text-[var(--color-electric-blue)]">
-                  info@cosmographic.store
-                </span>
+                updates. See{" "}
+                <Link href="/privacy" className="text-[var(--color-electric-blue)] hover:underline">
+                  Privacy
+                </Link>
                 .
               </span>
             </label>
@@ -212,9 +268,12 @@ function HomePageInner() {
             </button>
 
             {error && (
-              <p className="text-sm text-[var(--color-neon-pink)]" role="alert">
-                {error}
-              </p>
+              <div role="alert" className="space-y-1">
+                <p className="text-sm text-[var(--color-neon-pink)]">{error}</p>
+                {recovery && (
+                  <p className="text-xs text-[var(--color-muted)]">{recovery}</p>
+                )}
+              </div>
             )}
             {crmNote && (
               <p className="text-xs text-[var(--color-electric-blue-dim)]">{crmNote}</p>
@@ -226,7 +285,8 @@ function HomePageInner() {
                   {chart.meta.placeLabel}
                 </p>
                 <p>
-                  UTC {chart.meta.utc} · {chart.meta.timezone}
+                  TZ {chart.meta.timezone} · UTC {chart.meta.utc} · offset{" "}
+                  {chart.meta.utcOffsetHours}h
                 </p>
                 <p>
                   ASC {chart.angles.asc.toFixed(2)}° · MC{" "}
@@ -243,11 +303,11 @@ function HomePageInner() {
                   Preview idle
                 </p>
                 <h2 className="text-lg font-medium text-[var(--color-neon-pink-soft)]">
-                  Chart + mock-up await your birth data
+                  Chart + apparel await your birth data
                 </h2>
                 <p className="max-w-md text-sm leading-relaxed text-[var(--color-muted)]">
-                  Generate to unlock the Option A SVG, placement summaries, and the
-                  interactive FRONT / BACK t-shirt stage.
+                  Generate to unlock natal wheel, back planet table, multi-product
+                  previews, and one-click personalized catalog.
                 </p>
               </div>
             )}
@@ -255,7 +315,7 @@ function HomePageInner() {
               <div className="flex flex-1 flex-col items-center justify-center gap-3">
                 <div className="animate-spin-slow h-10 w-10 rounded-full border-2 border-[var(--color-panel-border)] border-t-[var(--color-electric-blue)]" />
                 <p className="text-sm text-[var(--color-electric-blue)]">
-                  Resolving location & computing Swiss Ephemeris…
+                  Validating · geocoding · Swiss Ephemeris…
                 </p>
               </div>
             )}
@@ -267,18 +327,42 @@ function HomePageInner() {
                   style={chartStyle}
                   onStyleChange={setChartStyle}
                 />
-                <TShirtMockup
+                <div className="sr-only" aria-hidden>
+                  <BackPlacementPrint chart={chart} />
+                </div>
+                <ProductCatalog
+                  selected={productKind}
+                  onSelect={setProductKind}
+                />
+                <GarmentPreview
                   chart={chart}
                   printSide={printSide}
                   onPrintSideChange={setPrintSide}
+                  garment={productToGarment(productKind)}
+                  onGarmentChange={(g) => setProductKind(g)}
                 />
-                <CheckoutPanel
-                  chart={chart}
-                  printSide={printSide}
-                  onPrintSideChange={setPrintSide}
-                  birth={birth}
-                  productVariantId={productVariantId}
-                />
+                <PersonalizeProductsCTA chart={chart} birth={birth} />
+
+                <div className="border-t border-[var(--color-panel-border)] pt-4">
+                  <button
+                    type="button"
+                    className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--color-muted)] hover:text-[var(--color-electric-blue)]"
+                    onClick={() => setShowAdvancedCheckout((v) => !v)}
+                  >
+                    {showAdvancedCheckout ? "Hide" : "Show"} advanced single-variant checkout
+                  </button>
+                  {showAdvancedCheckout && (
+                    <div className="mt-4">
+                      <CheckoutPanel
+                        chart={chart}
+                        printSide={printSide}
+                        onPrintSideChange={setPrintSide}
+                        birth={birth}
+                        productVariantId={productVariantId}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -297,6 +381,10 @@ function HomePageInner() {
           >
             www.cosmographic.store
           </a>
+          {" · "}
+          <Link href="/privacy" className="hover:underline">
+            Privacy
+          </Link>
           {" · "}
           <a className="hover:underline" href="mailto:info@cosmographic.store">
             info@cosmographic.store

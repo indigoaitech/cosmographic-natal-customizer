@@ -3,6 +3,7 @@ import {
   getShopifyConfig,
   storefrontEndpoint,
 } from "@/lib/shopify/config";
+import { fetchWithTimeout } from "@/lib/http/fetchWithTimeout";
 
 type GraphQlError = { message: string };
 
@@ -29,7 +30,6 @@ export async function storefrontRequest<T>(
     Accept: "application/json",
   };
 
-  // Headless: public token and/or private server token
   if (cfg.storefrontToken) {
     headers["X-Shopify-Storefront-Access-Token"] = cfg.storefrontToken;
   }
@@ -38,16 +38,20 @@ export async function storefrontRequest<T>(
   }
   if (!cfg.storefrontToken && !cfg.storefrontPrivateToken) {
     throw new ShopifyStorefrontError(
-      "Storefront token eksik (SHOPIFY_STOREFRONT_TOKEN veya PRIVATE).",
+      "Storefront token missing (SHOPIFY_STOREFRONT_TOKEN or PRIVATE).",
     );
   }
 
-  const res = await fetch(storefrontEndpoint(cfg), {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ query, variables }),
-    cache: "no-store",
-  });
+  const res = await fetchWithTimeout(
+    storefrontEndpoint(cfg),
+    {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ query, variables }),
+      cache: "no-store",
+    },
+    { timeoutMs: 15_000, retries: 2, label: "shopify.storefront" },
+  );
 
   const json = (await res.json().catch(() => ({}))) as {
     data?: T;

@@ -26,6 +26,9 @@ type CartBody = {
   birthCountry?: string;
   quantity?: number;
   productVariantId?: string;
+  sessionId?: string;
+  printFrontUrl?: string;
+  printBackUrl?: string;
 };
 
 /**
@@ -68,6 +71,9 @@ export async function POST(req: NextRequest) {
     birthCountry: body.birthCountry,
     quantity: body.quantity,
     productVariantId: body.productVariantId?.trim() || undefined,
+    sessionId: body.sessionId?.trim() || undefined,
+    printFrontUrl: body.printFrontUrl?.trim() || undefined,
+    printBackUrl: body.printBackUrl?.trim() || undefined,
   };
 
   try {

@@ -20,6 +20,12 @@ export type LineItemCustomization = {
   quantity?: number;
   /** Optional override from product-page CTA (?variant=) */
   productVariantId?: string;
+  /** Personalization session UUID for catalog + Printify fulfillment */
+  sessionId?: string;
+  /** High-res front wheel URL (Printify / theme) */
+  printFrontUrl?: string;
+  /** High-res back table URL */
+  printBackUrl?: string;
 };
 
 export type CartResult = {
@@ -64,6 +70,13 @@ function buildAttributes(c: LineItemCustomization): Attribute[] {
     { key: "_visual_id", value: c.visualId },
   ];
 
+  if (c.sessionId) attrs.push({ key: "_session_id", value: c.sessionId });
+  if (c.printFrontUrl) {
+    attrs.push({ key: "_print_front_url", value: c.printFrontUrl });
+  }
+  if (c.printBackUrl) {
+    attrs.push({ key: "_print_back_url", value: c.printBackUrl });
+  }
   if (c.chartSummary) attrs.push({ key: "_chart_summary", value: c.chartSummary });
   if (c.dateOfBirth) attrs.push({ key: "_date_of_birth", value: c.dateOfBirth });
   if (c.timeOfBirth) attrs.push({ key: "_time_of_birth", value: c.timeOfBirth });
@@ -98,6 +111,9 @@ export async function createCheckoutCart(
       attributes: [
         { key: "_source", value: "natal_customizer" },
         { key: "_visual_id", value: customization.visualId },
+        ...(customization.sessionId
+          ? [{ key: "_session_id", value: customization.sessionId }]
+          : []),
       ],
     },
   });

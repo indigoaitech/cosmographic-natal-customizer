@@ -1,0 +1,20 @@
+# Render Blueprint — Cosmographic Swiss Ephemeris API
+# Deploy: https://dashboard.render.com → New → Blueprint → connect this repo
+# Root directory when using monorepo: leave blank; service rootDir is set below.
+
+services:
+  - type: web
+    name: cosmographic-ephemeris
+    runtime: docker
+    rootDir: services/ephemeris
+    plan: free
+    healthCheckPath: /v1/health
+    envVars:
+      - key: EPHE_PATH
+        value: /app/ephe
+      - key: CORS_ORIGINS
+        value: https://www.cosmographic.store,https://shop.cosmographic.store,http://localhost:3000
+      - key: NOMINATIM_USER_AGENT
+        value: CosmographicNatalCustomizer/0.1 (cosmographicstore@gmail.com)
+      - key: NOMINATIM_BASE_URL
+        value: https://nominatim.openstreetmap.org

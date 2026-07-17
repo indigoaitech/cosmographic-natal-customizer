@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { PRINT_SVG_ID } from "@/components/chart/DesignPreview";
-import type { PrintSide } from "@/components/mockup/TShirtMockup";
+import type { PrintSide } from "@/components/mockup/GarmentPreview";
 import type { ChartPayload } from "@/lib/chart/types";
 
 type ShopifyStatus = {
@@ -153,11 +153,14 @@ export function CheckoutPanel({
           Shopify checkout
         </p>
         <h3 className="mt-1 text-lg font-medium text-[var(--color-star)]">
-          Sepete ekle / Hemen al
+          Direct Shopify checkout
         </h3>
         <p className="mt-1 text-xs leading-relaxed text-[var(--color-muted)]">
-          Orijinal astrolabe kaydedilir → checkout{" "}
-          <span className="text-[var(--color-star)]">www.cosmographic.store</span>
+          Optional single-variant cart. Prefer{" "}
+          <span className="text-[var(--color-star)]">
+            Create My Personalized Products
+          </span>{" "}
+          above for the full catalog with session_id.
         </p>
       </div>
 

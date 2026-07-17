@@ -14,9 +14,17 @@ export type StoredDesign = {
 
 function designsDir(): string {
   const configured = process.env.DESIGN_STORAGE_PATH?.trim();
-  const dir = configured || path.join(process.cwd(), "data", "designs");
-  fs.mkdirSync(dir, { recursive: true });
-  return dir;
+  if (configured) {
+    fs.mkdirSync(configured, { recursive: true });
+    return configured;
+  }
+  // Vercel / serverless: cwd is read-only; use /tmp for ephemeral design assets.
+  const base =
+    process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
+      ? path.join("/tmp", "cosmographic", "designs")
+      : path.join(process.cwd(), "data", "designs");
+  fs.mkdirSync(base, { recursive: true });
+  return base;
 }
 
 export function saveDesignAsset(input: {

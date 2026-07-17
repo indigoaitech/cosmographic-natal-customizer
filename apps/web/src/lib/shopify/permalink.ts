@@ -56,6 +56,13 @@ export function buildCartPermalink(c: LineItemCustomization): {
   params.set("properties[_design_option]", c.designOption);
   params.set("properties[_print_side]", c.printSide);
   params.set("properties[_visual_id]", c.visualId);
+  if (c.sessionId) params.set("properties[_session_id]", c.sessionId);
+  if (c.printFrontUrl) {
+    params.set("properties[_print_front_url]", c.printFrontUrl.slice(0, 500));
+  }
+  if (c.printBackUrl) {
+    params.set("properties[_print_back_url]", c.printBackUrl.slice(0, 500));
+  }
   if (c.chartSummary) {
     params.set("properties[_chart_summary]", c.chartSummary.slice(0, 240));
   }

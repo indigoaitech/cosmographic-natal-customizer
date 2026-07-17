@@ -48,6 +48,10 @@ function PrintOverlay({
   );
 }
 
+/**
+ * @deprecated Legacy flat silhouette mockup — superseded by GarmentPreview.
+ * Kept for reference; do not wire into the primary commerce path.
+ */
 export function TShirtMockup({
   chart,
   printSide: controlledSide,
