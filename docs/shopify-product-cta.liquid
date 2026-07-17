@@ -1,0 +1,27 @@
+{% comment %}
+  Cosmographic — Natal Chart CTA
+  Themes → Customize → Product template → Add block → Custom Liquid
+  Place above Buy buttons. Save.
+{% endcomment %}
+
+<div class="cosmographic-natal-cta" style="margin:1.5rem 0;padding:1.25rem;border:1px solid rgba(30,224,255,.35);border-radius:12px;background:linear-gradient(160deg,#0b1f4a 0%,#071428 100%);color:#e8f4ff;">
+  <p style="margin:0 0 .35rem;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;opacity:.85;">
+    Cosmographic
+  </p>
+  <h3 style="margin:0 0 .5rem;font-size:1.25rem;font-weight:600;">
+    Create your natal chart tee
+  </h3>
+  <p style="margin:0 0 1rem;font-size:.9rem;line-height:1.45;opacity:.9;">
+    Enter birth details, generate your unique chart, then checkout with this product.
+  </p>
+  {% comment %}
+    Until customize.cosmographic.store DNS is live, Vercel URL works.
+    After Namecheap CNAME is set, switch href to customize domain.
+  {% endcomment %}
+  <a
+    href="https://cosmographic-natal-customizer.vercel.app/?variant={{ product.selected_or_first_available_variant.id }}&product={{ product.handle }}"
+    style="display:inline-block;padding:.75rem 1.25rem;border-radius:999px;background:#1ee0ff;color:#041018;font-weight:600;text-decoration:none;"
+  >
+    Design your chart →
+  </a>
+</div>

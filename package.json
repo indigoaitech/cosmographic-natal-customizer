@@ -1,0 +1,14 @@
+{
+  "name": "cosmographic-natal-customizer",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace=web",
+    "dev:ephemeris": "cd services/ephemeris && .venv/bin/uvicorn app.main:app --reload --port 8000",
+    "build": "npm run build --workspace=web",
+    "build:web": "npm run build --workspace=web"
+  }
+}

@@ -1,0 +1,343 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Cosmographic space theme — neon dark blue / electric blue / neon pink */
+  --color-void: #030712;
+  --color-nebula: #0a1628;
+  --color-deep-blue: #061428;
+  --color-neon-dark-blue: #0b1f4a;
+  --color-electric-blue: #1ee0ff;
+  --color-electric-blue-dim: #0ea5c6;
+  --color-neon-pink: #ff2d95;
+  --color-neon-pink-soft: #ff6bb5;
+  --color-star: #e8f4ff;
+  --color-muted: #8ba3c7;
+  --color-panel: rgba(11, 31, 74, 0.55);
+  --color-panel-border: rgba(30, 224, 255, 0.28);
+  --color-shirt: #121c2e;
+  --color-shirt-fold: #1a2740;
+  --color-shirt-highlight: #243556;
+
+  --chart-neon-dark-blue: #0b1f4a;
+  --chart-electric-blue: #1ee0ff;
+  --chart-neon-pink: #ff2d95;
+  --chart-ring: var(--chart-electric-blue);
+  --chart-aspect-hard: var(--chart-neon-pink);
+  --chart-aspect-soft: #0ea5c6;
+
+  --background: var(--color-void);
+  --foreground: var(--color-star);
+
+  --font-sans: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.25rem;
+  --glow-blue: 0 0 24px rgba(30, 224, 255, 0.35);
+  --glow-pink: 0 0 18px rgba(255, 45, 149, 0.3);
+
+  --space-gradient: radial-gradient(
+      ellipse 120% 80% at 50% -10%,
+      rgba(30, 224, 255, 0.2),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 70% 55% at 100% 100%,
+      rgba(255, 45, 149, 0.14),
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 0% 80%,
+      rgba(11, 31, 74, 0.9),
+      transparent 55%
+    ),
+    linear-gradient(
+      165deg,
+      var(--color-void) 0%,
+      var(--color-deep-blue) 42%,
+      var(--color-nebula) 100%
+    );
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  background-image: var(--space-gradient);
+  background-attachment: fixed;
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: rgba(30, 224, 255, 0.28);
+  color: var(--color-star);
+}
+
+input[type="date"],
+input[type="time"],
+input[type="email"],
+input[type="text"],
+input:not([type]) {
+  color-scheme: dark;
+}
+
+@layer components {
+  .cg-input {
+    @apply w-full rounded-[var(--radius-sm)] border px-3 py-2.5 text-sm outline-none transition;
+    border-color: var(--color-panel-border);
+    background: rgba(11, 31, 74, 0.65);
+    color: var(--color-star);
+  }
+
+  .cg-input::placeholder {
+    color: rgba(139, 163, 199, 0.65);
+  }
+
+  .cg-input:hover {
+    border-color: rgba(30, 224, 255, 0.45);
+  }
+
+  .cg-input:focus {
+    border-color: var(--color-electric-blue);
+    box-shadow: 0 0 0 3px rgba(30, 224, 255, 0.15), var(--glow-blue);
+  }
+
+  .cg-label {
+    @apply flex flex-col gap-1.5 text-sm;
+  }
+
+  .cg-label > span {
+    color: var(--color-muted);
+    font-size: 0.8rem;
+    letter-spacing: 0.02em;
+  }
+
+  .cg-btn-primary {
+    @apply rounded-[var(--radius-sm)] px-4 py-2.5 text-sm font-semibold transition disabled:opacity-60;
+    background: var(--color-electric-blue);
+    color: var(--color-void);
+    box-shadow: var(--glow-blue);
+  }
+
+  .cg-btn-primary:hover:not(:disabled) {
+    filter: brightness(1.08);
+  }
+
+  .cg-btn-ghost {
+    @apply rounded-[var(--radius-sm)] border px-3 py-2 text-xs font-medium transition;
+    border-color: var(--color-panel-border);
+    color: var(--color-electric-blue);
+  }
+
+  .cg-btn-ghost:hover {
+    border-color: var(--color-electric-blue);
+    background: rgba(11, 31, 74, 0.55);
+  }
+
+  .cg-toggle {
+    @apply relative inline-flex items-center gap-1 rounded-full p-1;
+    background: rgba(6, 20, 40, 0.85);
+    border: 1px solid var(--color-panel-border);
+  }
+
+  .cg-toggle-btn {
+    @apply relative z-10 rounded-full px-4 py-2 text-xs font-semibold tracking-wider transition;
+    color: var(--color-muted);
+  }
+
+  .cg-toggle-btn[data-active="true"] {
+    color: var(--color-void);
+    background: var(--color-electric-blue);
+    box-shadow: var(--glow-blue);
+  }
+
+  .cg-toggle-btn[data-side="back"][data-active="true"] {
+    background: var(--color-neon-pink);
+    box-shadow: var(--glow-pink);
+    color: var(--color-star);
+  }
+}
+
+@layer utilities {
+  .text-glow-blue {
+    text-shadow: 0 0 18px rgba(30, 224, 255, 0.45);
+  }
+
+  .text-glow-pink {
+    text-shadow: 0 0 16px rgba(255, 45, 149, 0.4);
+  }
+
+  .panel-glass {
+    background: var(--color-panel);
+    border: 1px solid var(--color-panel-border);
+    backdrop-filter: blur(14px);
+    border-radius: var(--radius-md);
+    box-shadow: 0 0 40px rgba(3, 7, 18, 0.45),
+      inset 0 1px 0 rgba(30, 224, 255, 0.08);
+  }
+
+  .starfield {
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-image: radial-gradient(
+        1.5px 1.5px at 12% 18%,
+        rgba(232, 244, 255, 0.9),
+        transparent
+      ),
+      radial-gradient(1px 1px at 28% 42%, rgba(30, 224, 255, 0.7), transparent),
+      radial-gradient(1.5px 1.5px at 61% 22%, rgba(232, 244, 255, 0.75), transparent),
+      radial-gradient(1px 1px at 78% 58%, rgba(255, 45, 149, 0.55), transparent),
+      radial-gradient(1px 1px at 44% 76%, rgba(232, 244, 255, 0.65), transparent),
+      radial-gradient(1.5px 1.5px at 88% 14%, rgba(30, 224, 255, 0.6), transparent),
+      radial-gradient(1px 1px at 8% 84%, rgba(232, 244, 255, 0.5), transparent),
+      radial-gradient(1px 1px at 53% 8%, rgba(255, 107, 181, 0.45), transparent);
+    animation: star-drift 48s linear infinite;
+    opacity: 0.7;
+  }
+
+  .nebula-orb {
+    pointer-events: none;
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(60px);
+    z-index: 0;
+    animation: nebula-pulse 10s ease-in-out infinite;
+  }
+
+  .nebula-orb--blue {
+    width: 42vw;
+    height: 42vw;
+    top: -8%;
+    right: -10%;
+    background: rgba(30, 224, 255, 0.12);
+  }
+
+  .nebula-orb--pink {
+    width: 36vw;
+    height: 36vw;
+    bottom: -12%;
+    left: -8%;
+    background: rgba(255, 45, 149, 0.1);
+    animation-delay: -4s;
+  }
+
+  .page-shell {
+    position: relative;
+    z-index: 1;
+  }
+
+  .mockup-stage {
+    perspective: 1400px;
+    transform-style: preserve-3d;
+  }
+
+  .mockup-flipper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    max-width: 420px;
+    margin-inline: auto;
+    transform-style: preserve-3d;
+    transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .mockup-flipper[data-side="back"] {
+    transform: rotateY(180deg);
+  }
+
+  .mockup-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: var(--radius-lg);
+  }
+
+  .mockup-face--back {
+    transform: rotateY(180deg);
+  }
+
+  .animate-fade-up {
+    animation: fade-up 0.55s ease-out both;
+  }
+
+  .animate-glow-pulse {
+    animation: glow-pulse 3.2s ease-in-out infinite;
+  }
+
+  .animate-spin-slow {
+    animation: spin 0.9s linear infinite;
+  }
+}
+
+@keyframes star-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, -28px, 0);
+  }
+}
+
+@keyframes nebula-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 10px rgba(30, 224, 255, 0.25));
+  }
+  50% {
+    filter: drop-shadow(0 0 22px rgba(255, 45, 149, 0.35));
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .starfield,
+  .nebula-orb,
+  .animate-glow-pulse,
+  .mockup-flipper {
+    animation: none !important;
+    transition: none !important;
+  }
+}

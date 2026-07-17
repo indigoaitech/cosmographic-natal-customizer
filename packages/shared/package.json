@@ -1,0 +1,11 @@
+{
+  "name": "@cosmographic/shared",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/chart.ts",
+  "types": "./src/chart.ts",
+  "exports": {
+    ".": "./src/chart.ts",
+    "./chart": "./src/chart.ts"
+  }
+}
