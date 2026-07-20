@@ -19,7 +19,18 @@ export type FieldError = {
 };
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+/** Hours and minutes only — seconds are stripped via normalizeBirthTime. */
 const TIME_RE = /^\d{2}:\d{2}(:\d{2})?$/;
+
+/** Normalize UI time (HH:MM) to HH:MM:00 for the ephemeris API. */
+export function normalizeBirthTime(raw: string): string {
+  const t = raw.trim();
+  const m = t.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if (!m) return t;
+  const hh = m[1].padStart(2, "0");
+  const mm = m[2];
+  return `${hh}:${mm}:00`;
+}
 
 export function validateBirthInput(input: BirthInput): FieldError[] {
   const errors: FieldError[] = [];
@@ -44,11 +55,12 @@ export function validateBirthInput(input: BirthInput): FieldError[] {
     }
   }
 
-  if (!TIME_RE.test(input.timeOfBirth?.trim() || "")) {
+  const timeNormalized = normalizeBirthTime(input.timeOfBirth || "");
+  if (!TIME_RE.test(timeNormalized)) {
     errors.push({
       field: "timeOfBirth",
       code: "INVALID_TIME",
-      message: "Enter exact birth time as HH:MM (24-hour).",
+      message: "Enter birth time as HH:MM (hours and minutes only).",
       recovery:
         "If time is unknown, use 12:00 noon as an approximation — houses/ASC will be less accurate.",
     });

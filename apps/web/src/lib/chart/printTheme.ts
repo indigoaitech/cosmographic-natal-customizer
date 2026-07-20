@@ -54,5 +54,5 @@ export const printAspectColors: Record<string, string> = {
   opposition: printTheme.aspectHard,
   square: printTheme.aspectHard,
   trine: printTheme.aspectSoft,
-  sextile: printTheme.aspectSoft,
+  sextile: "#27ae60",
 };

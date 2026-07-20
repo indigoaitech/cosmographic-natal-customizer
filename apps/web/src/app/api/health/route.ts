@@ -1,9 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 import { fetchWithTimeout } from "@/lib/http/fetchWithTimeout";
-import { getPrintifyConfig } from "@/lib/printify/client";
-import { getShopifyConfigStatus } from "@/lib/shopify/config";
-import { isCloudStorageConfigured, isS3Configured } from "@/lib/storage/cloud";
 
 export const runtime = "nodejs";
 
@@ -11,11 +8,9 @@ const EPHEMERIS_API_URL =
   process.env.EPHEMERIS_API_URL?.replace(/\/$/, "") || "http://localhost:8000";
 
 /**
- * Liveness / dependency probe for load balancers and uptime monitors.
- * Does not expose secrets.
+ * Liveness probe — Swiss Ephemeris only (birth map app).
  */
-export async function GET(_req: NextRequest) {
-  const shopify = getShopifyConfigStatus();
+export async function GET() {
   let ephemeris: { ok: boolean; detail?: string; swissEphemeris?: string } = {
     ok: false,
   };
@@ -42,32 +37,15 @@ export async function GET(_req: NextRequest) {
     };
   }
 
-  const printify = Boolean(getPrintifyConfig());
   const body = {
-    ok: ephemeris.ok && shopify.hasVariantId,
-    service: "cosmographic-web",
+    ok: ephemeris.ok,
+    service: "cosmographi-birth-map",
     ts: new Date().toISOString(),
-    checks: {
-      ephemeris,
-      shopify: {
-        configured: shopify.configured,
-        hasVariantId: shopify.hasVariantId,
-        hasToken: shopify.hasToken,
-        missing: shopify.missing,
-      },
-      printify: { configured: printify },
-      storage: {
-        cloudinary: isCloudStorageConfigured(),
-        s3: isS3Configured(),
-        localFs: true,
-      },
-    },
+    checks: { ephemeris },
   };
 
   return NextResponse.json(body, {
     status: body.ok ? 200 : 503,
-    headers: {
-      "Cache-Control": "no-store",
-    },
+    headers: { "Cache-Control": "no-store" },
   });
 }

@@ -1,6 +1,20 @@
 import { describe, expect, it } from "vitest";
 
-import { validateBirthInput } from "@/lib/validation/birth";
+import {
+  normalizeBirthTime,
+  validateBirthInput,
+} from "@/lib/validation/birth";
+
+describe("normalizeBirthTime", () => {
+  it("pads HH:MM to HH:MM:00", () => {
+    expect(normalizeBirthTime("14:32")).toBe("14:32:00");
+    expect(normalizeBirthTime("9:05")).toBe("09:05:00");
+  });
+
+  it("strips seconds when present", () => {
+    expect(normalizeBirthTime("14:32:59")).toBe("14:32:00");
+  });
+});
 
 describe("validateBirthInput", () => {
   it("accepts a valid birth payload", () => {

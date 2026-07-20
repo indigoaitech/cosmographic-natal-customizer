@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { JetBrains_Mono, Outfit, Syne } from "next/font/google";
 import "./globals.css";
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+});
+
+const syne = Syne({
+  variable: "--font-syne",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -16,31 +22,25 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Cosmographic | Personalized Natal Chart Apparel",
-    template: "%s · Cosmographic",
+    default: "Cosmographi · Birth Map Generator",
+    template: "%s · Cosmographi",
   },
   description:
-    "Enter your birth data, generate an accurate Swiss Ephemeris natal chart, and shop personalized print-on-demand apparel — front wheel, back planet table, zero manual uploads.",
+    "Enter birth date, time, and place. Generate a print-ready classic natal chart with Swiss Ephemeris and a brief astrological reading.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL || "https://www.cosmographic.store",
   ),
-  authors: [{ name: "Cosmographic Store", url: "https://www.cosmographic.store" }],
   openGraph: {
-    title: "Cosmographic · Your natal chart, printed",
+    title: "Cosmographi · Birth Map Generator",
     description:
-      "Swiss Ephemeris natal charts personalized on tees, hoodies, and more.",
+      "Classic print-ready natal charts from Swiss Ephemeris — cosmic cartography & data design.",
     url: "https://www.cosmographic.store",
-    siteName: "Cosmographic",
+    siteName: "Cosmographi",
     locale: "en_US",
     type: "website",
   },
-  robots: {
-    index: true,
-    follow: true,
-  },
-  alternates: {
-    canonical: "/",
-  },
+  robots: { index: true, follow: true },
+  alternates: { canonical: "/" },
 };
 
 export default function RootLayout({
@@ -51,11 +51,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} antialiased`}
+        className={`${outfit.variable} ${syne.variable} ${jetbrainsMono.variable} antialiased`}
       >
         <a
           href="#birth-form"
-          className="sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:inline-block focus:h-auto focus:w-auto focus:overflow-visible focus:rounded-md focus:bg-[var(--color-electric-blue)] focus:px-3 focus:py-2 focus:text-[var(--color-void)]"
+          className="sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:inline-block focus:h-auto focus:w-auto focus:overflow-visible focus:rounded-md focus:bg-[var(--color-gold)] focus:px-3 focus:py-2 focus:text-[var(--color-void)]"
         >
           Skip to birth form
         </a>

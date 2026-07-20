@@ -6,6 +6,7 @@ import { fetchWithTimeout } from "@/lib/http/fetchWithTimeout";
 import { log } from "@/lib/logging/logger";
 import {
   formatValidationError,
+  normalizeBirthTime,
   validateBirthInput,
   type BirthInput,
 } from "@/lib/validation/birth";
@@ -32,17 +33,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(err, { status });
   }
 
+  const loc = body.location as { city?: string; country?: string } | undefined;
+  const city = String(loc?.city || body.city || "");
+  const country = String(loc?.country || body.country || "");
+
   const birth: BirthInput = {
     dateOfBirth: String(body.dateOfBirth || ""),
-    timeOfBirth: String(body.timeOfBirth || ""),
-    city: String(
-      (body.location as { city?: string } | undefined)?.city || body.city || "",
-    ),
-    country: String(
-      (body.location as { country?: string } | undefined)?.country ||
-        body.country ||
-        "",
-    ),
+    timeOfBirth: normalizeBirthTime(String(body.timeOfBirth || "")),
+    city,
+    country,
   };
 
   const fieldErrors = validateBirthInput(birth);
@@ -57,6 +56,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(err, { status });
   }
 
+  // Ephemeris expects location:{city,country} — normalize flat city/country bodies.
+  const upstreamBody = {
+    dateOfBirth: birth.dateOfBirth,
+    timeOfBirth: birth.timeOfBirth,
+    location: { city: birth.city, country: birth.country },
+    houseSystem: body.houseSystem || "P",
+  };
+
   track("chart_generate_started");
 
   try {
@@ -68,7 +75,7 @@ export async function POST(req: NextRequest) {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify(upstreamBody),
         cache: "no-store",
       },
       { timeoutMs: 20_000, retries: 2, label: "ephemeris.natal-chart" },

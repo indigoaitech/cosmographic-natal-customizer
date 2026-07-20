@@ -11,6 +11,13 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@nodelib/fs.scandir": "^2.1.5",
+    "@nodelib/fs.stat": "^2.0.5",
+    "@nodelib/fs.walk": "^1.2.8",
+    "@resvg/resvg-wasm": "^2.6.2",
+    "@vercel/blob": "^2.6.1",
+    "merge2": "^1.4.1",
+    "micromatch": "^4.0.8",
     "next": "^16.2.10",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
