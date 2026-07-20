@@ -1,1 +1,6 @@
-{ "installCommand": "npm install --prefix apps/web", "buildCommand": "npm run build --workspace=web", "outputDirectory": "apps/web/.next" }
+{
+  "framework": "nextjs",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build --workspace=web",
+  "outputDirectory": "apps/web/.next"
+}
