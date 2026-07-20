@@ -19,3 +19,4 @@ apps/web/data/designs/
 *.sqlite-shm
 .vercel
 .env*
+skills-lock.json

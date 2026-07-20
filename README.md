@@ -1,24 +1,25 @@
-# Cosmographic Natal Chart T-Shirt Customizer
+# Cosmographi · Birth Map Generator
 
-Interactive natal-chart customizer for [www.cosmographic.store](https://www.cosmographic.store).  
+Minimal natal-chart app for [www.cosmographic.store](https://www.cosmographic.store).  
+Enter birth date, time (HH:MM), and place → one classic print-ready Swiss Ephemeris chart + a brief reading.
+
 Contact: cosmographicstore@gmail.com
 
 ## Stack
 
 | Layer | Tech |
 |-------|------|
-| Web customizer | Next.js (App Router) + TypeScript |
+| Web | Next.js (App Router) + TypeScript |
 | Chart engine | Python FastAPI + Swiss Ephemeris (`pyswisseph`) |
 | Geocode / TZ | OpenStreetMap Nominatim + `timezonefinder` |
-| Commerce | Shopify Storefront API (line-item properties → checkout) |
+| Hosting | Vercel (web) · Railway / Render (ephemeris) |
 
-## Monorepo layout
+## Layout
 
 ```text
-apps/web                 Next.js customizer + BFF routes
+apps/web                 Birth map UI + /api/chart · /api/health
 services/ephemeris       Swiss Ephemeris microservice
 packages/shared          Shared TypeScript chart contracts
-docs/                    Architecture notes
 ```
 
 ## Quick start
@@ -30,50 +31,32 @@ cd services/ephemeris
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-./scripts/download_ephe.sh   # Swiss Ephemeris .se1 data files
+./scripts/download_ephe.sh
 cp .env.example .env
 uvicorn app.main:app --reload --port 8000
 ```
 
-Health: `GET http://localhost:8000/v1/health`  
-Docs: `http://localhost:8000/docs`
+Health: `GET http://localhost:8000/v1/health`
 
 ### 2. Web app
 
 ```bash
-cd apps/web
-cp .env.example .env.local
+cp apps/web/.env.example apps/web/.env.local
+# set EPHEMERIS_API_URL=http://localhost:8000
 npm install
-npm run dev
+npm run dev:web
 ```
 
-Open `http://localhost:3000`.
+Open [http://localhost:3000](http://localhost:3000).
 
-## Environment
+## Env
 
-See `services/ephemeris/.env.example` and `apps/web/.env.example`.
+| Variable | Where | Purpose |
+|----------|--------|---------|
+| `EPHEMERIS_API_URL` | `apps/web/.env.local` / Vercel | Chart calculation service |
+| `NEXT_PUBLIC_APP_URL` | optional | Public site origin |
 
-Key production settings for the web app:
+## Deploy
 
-- `RESEND_API_KEY` — transactional mail from **info@cosmographic.store**
-- `SHOPIFY_WEBHOOK_SECRET` — HMAC for `orders/create` CRM ingestion
-- `EMAIL_DRY_RUN=true` — safe local mode (no outbound mail)
-- `NEXT_PUBLIC_APP_URL` — absolute URLs for `_print_front_url` / `_print_back_url`
-- `SHOPIFY_PERSONALIZED_COLLECTION_HANDLE` — catalog redirect after personalization
-
-### Shopify
-
-Setup guide: [`docs/shopify-setup.md`](docs/shopify-setup.md)  
-Personalization engine: [`docs/personalization-engine.md`](docs/personalization-engine.md)  
-Production ops: [`docs/PRODUCTION.md`](docs/PRODUCTION.md)  
-Readiness audit: [`docs/PRODUCTION_READINESS_AUDIT.md`](docs/PRODUCTION_READINESS_AUDIT.md)
-
-- Cart / checkout: `POST /api/cart`
-- Session handoff: `POST /api/session` · `GET /api/session/{id}`
-- Design asset: `POST /api/design` · `GET /api/design/{visualId}?format=svg`
-- Webhook: `https://<your-host>/api/webhooks/shopify/orders-create`
-- Theme script: [`docs/shopify-session-personalization.liquid`](docs/shopify-session-personalization.liquid)
-# cosmographic-natal-customizer
-# cosmographic-natal-customizer
-# cosmographic-natal-customizer
-# cosmographic-natal-customizer
+- **Web:** `vercel.json` → `npm install` + `npm run build --workspace=web` → output `apps/web/.next`
+- **Ephemeris:** `render.yaml` Blueprint, or your Railway service URL in `EPHEMERIS_API_URL`
