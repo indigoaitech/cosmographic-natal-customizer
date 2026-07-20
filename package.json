@@ -10,5 +10,10 @@
     "dev:ephemeris": "cd services/ephemeris && .venv/bin/uvicorn app.main:app --reload --port 8000",
     "build": "npm run build --workspace=web",
     "build:web": "npm run build --workspace=web"
+  },
+  "dependencies": {
+    "next": "^16.2.10",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   }
 }
