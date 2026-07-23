@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import Response
 
 from app.ephemeris.calculator import compute_natal_chart, swe_version
 from app.geo.geocode import (
@@ -18,6 +19,7 @@ from app.models.schemas import (
     TimezoneRequest,
     TimezoneResponse,
 )
+from app.svg_renderer import NatalChartSVGRenderer
 
 router = APIRouter(prefix="/v1")
 
@@ -70,3 +72,33 @@ def timezone_endpoint(body: TimezoneRequest) -> TimezoneResponse:
 )
 def natal_chart(body: NatalChartRequest) -> ChartPayload:
     return compute_natal_chart(body)
+
+
+@router.post(
+    "/natal-chart-svg",
+    response_class=Response,
+)
+def natal_chart_svg(body: NatalChartRequest) -> Response:
+    """Generate SVG natal chart visualization (print-ready)."""
+    try:
+        # Compute chart data
+        chart = compute_natal_chart(body)
+        
+        # Render SVG
+        renderer = NatalChartSVGRenderer()
+        svg_string = renderer.generate(chart)
+        
+        # Return as SVG
+        return Response(
+            content=svg_string,
+            media_type="image/svg+xml",
+            headers={
+                "Content-Disposition": "inline; filename=natal-chart.svg",
+                "Cache-Control": "public, max-age=3600",
+            }
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"SVG generation failed: {str(e)}"
+        )
