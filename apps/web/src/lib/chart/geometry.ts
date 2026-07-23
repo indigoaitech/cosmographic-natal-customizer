@@ -6,16 +6,15 @@ export const CHART_SIZE = 1000;
 export const CHART_CX = CHART_SIZE / 2;
 export const CHART_CY = CHART_SIZE / 2;
 
-/** Concentric radii (viewBox units) — outer → inner (matches ClassicPrintNatalChart) */
+/** Concentric radii — center → out: aspect → houses → zodiac → ticks → planets */
 export const RADII = {
-  outer: 482,
-  zodiacOuter: 458,
-  zodiacInner: 338,
-  houseOuter: 338,
-  houseInner: 222,
-  planet: 272,
-  aspect: 222,
-  angleLabel: 498,
+  aspect: 155,
+  houseOuter: 255,
+  zodiacInner: 255,
+  zodiacOuter: 375,
+  outer: 405,
+  planet: 445,
+  angleLabel: 492,
 } as const;
 
 export function degToRad(deg: number): number {
