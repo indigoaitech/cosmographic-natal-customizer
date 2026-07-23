@@ -6,15 +6,15 @@ export const CHART_SIZE = 1000;
 export const CHART_CX = CHART_SIZE / 2;
 export const CHART_CY = CHART_SIZE / 2;
 
-/** Concentric radii — center → out: aspect → houses → zodiac → ticks → planets */
+/** Concentric radii — compact wheel + wide exterior planet margin (textile) */
 export const RADII = {
-  aspect: 155,
-  houseOuter: 255,
-  zodiacInner: 255,
-  zodiacOuter: 375,
-  outer: 405,
-  planet: 445,
-  angleLabel: 492,
+  aspect: 118,
+  houseOuter: 192,
+  zodiacInner: 192,
+  zodiacOuter: 298,
+  outer: 328,
+  planet: 395,
+  angleLabel: 462,
 } as const;
 
 export function degToRad(deg: number): number {

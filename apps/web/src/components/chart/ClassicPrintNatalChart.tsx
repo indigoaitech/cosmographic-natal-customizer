@@ -26,40 +26,36 @@ import {
 import type { ChartPayload } from "@/lib/chart/types";
 
 /**
- * Classic white natal wheel — ring-in-ring hierarchy (center → out):
- *   1. Small aspect core
- *   2. Houses band (dashed cusps + numbers)
- *   3. Zodiac band (large color glyphs)
- *   4. Degree ruler
- *   5. Planets OUTSIDE all rings with leader lines
- * ASC @ 9 o'clock · MC @ 12 o'clock
+ * Textile-optimized classic natal wheel.
+ *
+ * Compact wheel + wide outer margin so large exterior planet glyphs print
+ * cleanly on apparel. Hierarchy (center → out):
+ *   aspect core → houses → zodiac → degree ruler → exterior planets
  */
 const R = {
-  /** 1 — tiny aspect core */
-  aspect: 155,
-  /** 2 — houses band */
-  houseOuter: 255,
-  houseNum: 205,
-  /** 3 — zodiac band */
-  zodiacInner: 255,
-  zodiacOuter: 375,
-  /** 4 — degree ruler */
-  tickInner: 375,
-  tickOuter: 398,
-  outer: 405,
-  /** 5 — exterior planets */
-  planetElbow: 412,
-  planet: 445,
-  planetAlt: 475,
-  acMcLabel: 492,
+  /** Compact inner chart — leaves wide margin for exterior labels */
+  aspect: 118,
+  houseOuter: 192,
+  houseNum: 155,
+  zodiacInner: 192,
+  zodiacOuter: 298,
+  tickInner: 298,
+  tickOuter: 320,
+  outer: 328,
+  /** Exterior planets in the wide white margin */
+  planetElbow: 342,
+  planet: 395,
+  planetAlt: 438,
+  acMcLabel: 462,
 };
 
-const SIGN_SIZE = 36;
-const PLANET_SIZE = 26;
-const DEG_SIZE = 11;
-const MIN_SIZE = 9;
-const HOUSE_SIZE = 15;
-const SPREAD_GAP = 13;
+/** Oversized glyphs for DTG / screen-print readability */
+const SIGN_SIZE = 50;
+const PLANET_SIZE = 34;
+const DEG_SIZE = 13;
+const MIN_SIZE = 11;
+const HOUSE_SIZE = 16;
+const SPREAD_GAP = 15;
 
 type ClassicPrintNatalChartProps = {
   chart: ChartPayload;
@@ -95,7 +91,6 @@ function assignPlanetRadii(
   return radii;
 }
 
-/** Keep major aspects only so the core stays sparse. */
 function isMajorAspect(type: string): boolean {
   return ["conjunction", "opposition", "trine", "square", "sextile"].includes(
     type,
@@ -160,34 +155,34 @@ export function ClassicPrintNatalChart({
       height="100%"
       role="img"
       aria-label="Natal chart — print ready"
-      data-design="classic-print-white"
+      data-design="classic-print-textile"
       style={{ background: printTheme.bg }}
     >
       <title>Natal Chart — Print Ready</title>
       <desc>
-        Ring-in-ring natal wheel: small aspect core, houses, zodiac, degree
-        ruler, exterior planets with leaders. Swiss Ephemeris data.
+        Textile-optimized natal wheel: compact rings, oversized glyphs, bold
+        aspect colors, exterior planets. Swiss Ephemeris data.
       </desc>
 
       <rect x={0} y={0} width={CHART_SIZE} height={CHART_SIZE} fill={printTheme.bg} />
 
-      {/* Rings: aspect → house → zodiac → outer */}
+      {/* Bold concentric rings */}
       <g id="layer-rings" fill="none" stroke={printTheme.ring}>
-        <circle cx={CHART_CX} cy={CHART_CY} r={R.aspect} strokeWidth={1.75} />
-        <circle cx={CHART_CX} cy={CHART_CY} r={R.houseOuter} strokeWidth={1.5} />
-        <circle cx={CHART_CX} cy={CHART_CY} r={R.zodiacOuter} strokeWidth={1.5} />
-        <circle cx={CHART_CX} cy={CHART_CY} r={R.outer} strokeWidth={2} />
+        <circle cx={CHART_CX} cy={CHART_CY} r={R.aspect} strokeWidth={3} />
+        <circle cx={CHART_CX} cy={CHART_CY} r={R.houseOuter} strokeWidth={2.75} />
+        <circle cx={CHART_CX} cy={CHART_CY} r={R.zodiacOuter} strokeWidth={2.75} />
+        <circle cx={CHART_CX} cy={CHART_CY} r={R.outer} strokeWidth={3.5} />
         <circle
           cx={CHART_CX}
           cy={CHART_CY}
-          r={3.5}
+          r={5}
           fill={printTheme.ink}
           stroke="none"
         />
       </g>
 
-      {/* 1 — sparse aspect web in the small core */}
-      <g id="layer-aspects" fill="none">
+      {/* Bold, colorful aspect web */}
+      <g id="layer-aspects" fill="none" strokeLinecap="round">
         {majorAspects.map((asp, i) => {
           const aLon = lonById.get(asp.a);
           const bLon = lonById.get(asp.b);
@@ -204,15 +199,14 @@ export function ClassicPrintNatalChart({
               x2={b.x}
               y2={b.y}
               stroke={aspectColor(String(asp.type))}
-              strokeWidth={hard ? 0.9 : soft ? 0.75 : 0.6}
-              strokeDasharray={soft ? "4 3" : undefined}
-              opacity={0.8}
+              strokeWidth={hard ? 2.6 : soft ? 2.3 : 2}
+              opacity={0.95}
             />
           );
         })}
       </g>
 
-      {/* 2 — house band: thick dashed cusps + numbers */}
+      {/* House cusps + bold numbers */}
       <g id="layer-houses">
         {chart.houses.map((h) => {
           const isAngle = h.house === 1 || h.house === 10;
@@ -230,9 +224,9 @@ export function ClassicPrintNatalChart({
                 x2={spoke.x2}
                 y2={spoke.y2}
                 stroke={printTheme.ring}
-                strokeWidth={isAngle ? 2.4 : 1.8}
-                strokeDasharray={isAngle ? undefined : "6 4"}
-                opacity={0.95}
+                strokeWidth={isAngle ? 3.2 : 2.4}
+                strokeDasharray={isAngle ? undefined : "7 4"}
+                opacity={1}
               />
               <text
                 x={num.x}
@@ -242,7 +236,7 @@ export function ClassicPrintNatalChart({
                 fontSize={HOUSE_SIZE}
                 fill={printTheme.ink}
                 fontFamily="ui-sans-serif, system-ui, sans-serif"
-                fontWeight={700}
+                fontWeight={800}
               >
                 {h.house}
               </text>
@@ -251,7 +245,7 @@ export function ClassicPrintNatalChart({
         })}
       </g>
 
-      {/* 3 — zodiac band: large color-coded glyphs */}
+      {/* Large color-coded zodiac glyphs */}
       <g id="layer-zodiac">
         {SIGN_ORDER.map((sign, i) => {
           const start = i * 30;
@@ -266,7 +260,7 @@ export function ClassicPrintNatalChart({
                 x2={div.x2}
                 y2={div.y2}
                 stroke={printTheme.ring}
-                strokeWidth={1.1}
+                strokeWidth={2}
               />
               <text
                 x={g.x}
@@ -276,7 +270,7 @@ export function ClassicPrintNatalChart({
                 fontSize={SIGN_SIZE}
                 fill={signPrintColors[sign] ?? printTheme.ink}
                 fontFamily="'Segoe UI Symbol','Apple Symbols','Noto Sans Symbols',sans-serif"
-                fontWeight={600}
+                fontWeight={700}
               >
                 {SIGN_GLYPHS[sign]}
               </text>
@@ -285,10 +279,10 @@ export function ClassicPrintNatalChart({
         })}
       </g>
 
-      {/* 4 — degree ruler on the outer rim */}
+      {/* Degree ruler */}
       <g id="layer-ticks" stroke={printTheme.tick}>
         {ticks.map((t) => {
-          const inset = t.major ? 16 : t.medium ? 10 : 5;
+          const inset = t.major ? 14 : t.medium ? 9 : 5;
           const line = polarLine(t.lon, asc, R.tickOuter - inset, R.tickOuter);
           return (
             <line
@@ -297,14 +291,14 @@ export function ClassicPrintNatalChart({
               y1={line.y1}
               x2={line.x2}
               y2={line.y2}
-              strokeWidth={t.major ? 1.2 : t.medium ? 0.8 : 0.4}
-              opacity={t.major ? 0.9 : t.medium ? 0.65 : 0.4}
+              strokeWidth={t.major ? 1.6 : t.medium ? 1.1 : 0.55}
+              opacity={t.major ? 1 : t.medium ? 0.8 : 0.55}
             />
           );
         })}
       </g>
 
-      {/* Extend angle house spokes through zodiac to outer rim */}
+      {/* Angle spokes through zodiac to outer rim */}
       <g id="layer-angle-spokes" stroke={printTheme.ring}>
         {[1, 4, 7, 10].map((houseNum) => {
           const h = chart.houses.find((x) => x.house === houseNum);
@@ -317,13 +311,13 @@ export function ClassicPrintNatalChart({
               y1={spoke.y1}
               x2={spoke.x2}
               y2={spoke.y2}
-              strokeWidth={2.2}
+              strokeWidth={3}
             />
           );
         })}
       </g>
 
-      {/* 5 — planets OUTSIDE rings with leader lines */}
+      {/* Exterior planets — large, colorized, with leaders */}
       <g id="layer-planets">
         {placed.map((pl) => {
           const p = byId.get(pl.id);
@@ -343,8 +337,8 @@ export function ClassicPrintNatalChart({
           const vx = glyph.x - CHART_CX;
           const vy = glyph.y - CHART_CY;
           const len = Math.hypot(vx, vy) || 1;
-          const lx = glyph.x + (vx / len) * 22;
-          const ly = glyph.y + (vy / len) * 22;
+          const lx = glyph.x + (vx / len) * 26;
+          const ly = glyph.y + (vy / len) * 26;
 
           return (
             <g key={p.id}>
@@ -352,15 +346,18 @@ export function ClassicPrintNatalChart({
                 points={leaderPts}
                 fill="none"
                 stroke={color}
-                strokeWidth={0.85}
-                opacity={0.75}
+                strokeWidth={1.35}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity={0.9}
               />
               <circle
                 cx={anchor.x}
                 cy={anchor.y}
-                r={2.4}
+                r={3.2}
                 fill={color}
-                stroke="none"
+                stroke={printTheme.bg}
+                strokeWidth={1}
               />
               <text
                 x={glyph.x}
@@ -370,18 +367,18 @@ export function ClassicPrintNatalChart({
                 fontSize={PLANET_SIZE}
                 fill={color}
                 fontFamily="'Segoe UI Symbol','Apple Symbols','Noto Sans Symbols',sans-serif"
-                fontWeight={600}
+                fontWeight={700}
               >
                 {PLANET_GLYPHS[p.id] ?? "·"}
               </text>
               {p.retrograde && (
                 <text
-                  x={glyph.x + 12}
-                  y={glyph.y + 10}
-                  fontSize={9}
+                  x={glyph.x + 14}
+                  y={glyph.y + 12}
+                  fontSize={11}
                   fill={printTheme.retrograde}
                   fontFamily="ui-sans-serif, system-ui, sans-serif"
-                  fontWeight={700}
+                  fontWeight={800}
                 >
                   R
                 </text>
@@ -391,13 +388,13 @@ export function ClassicPrintNatalChart({
                 y={ly}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fill={printTheme.ink}
+                fill={color}
                 fontFamily="ui-sans-serif, system-ui, sans-serif"
               >
-                <tspan fontSize={DEG_SIZE} fontWeight={600}>
+                <tspan fontSize={DEG_SIZE} fontWeight={700}>
                   {deg}
                 </tspan>
-                <tspan fontSize={MIN_SIZE} fontWeight={400} dx={2}>
+                <tspan fontSize={MIN_SIZE} fontWeight={600} dx={2}>
                   {min}
                 </tspan>
               </text>
@@ -406,7 +403,6 @@ export function ClassicPrintNatalChart({
         })}
       </g>
 
-      {/* 6 — ASC (9 o'clock) · MC (12 o'clock) + DSC/IC arrow tips */}
       <AngleMarker lon={asc} asc={asc} label="ASC" kind="asc" />
       <AngleMarker lon={mc} asc={asc} label="MC" kind="mc" />
       <AngleArrow lon={dsc} asc={asc} />
@@ -416,9 +412,9 @@ export function ClassicPrintNatalChart({
 }
 
 function AngleArrow({ lon, asc }: { lon: number; asc: number }) {
-  const tip = lonToPoint(lon, asc, R.outer + 4);
+  const tip = lonToPoint(lon, asc, R.outer + 6);
   const angle = Math.atan2(tip.y - CHART_CY, tip.x - CHART_CX);
-  const ah = 9;
+  const ah = 11;
   const left = {
     x: tip.x - ah * Math.cos(angle - 0.5),
     y: tip.y - ah * Math.sin(angle - 0.5),
@@ -446,12 +442,12 @@ function AngleMarker({
   label: string;
   kind: "asc" | "mc";
 }) {
-  const tip = lonToPoint(lon, asc, R.outer + 8);
+  const tip = lonToPoint(lon, asc, R.outer + 10);
   const base = lonToPoint(lon, asc, R.aspect);
   const labelPt = lonToPoint(lon, asc, R.acMcLabel);
 
   const angle = Math.atan2(tip.y - CHART_CY, tip.x - CHART_CX);
-  const ah = 11;
+  const ah = 13;
   const left = {
     x: tip.x - ah * Math.cos(angle - 0.42),
     y: tip.y - ah * Math.sin(angle - 0.42),
@@ -469,7 +465,7 @@ function AngleMarker({
         x2={tip.x}
         y2={tip.y}
         stroke={printTheme.acMc}
-        strokeWidth={2.5}
+        strokeWidth={3.4}
       />
       <polygon
         points={`${tip.x},${tip.y} ${left.x},${left.y} ${right.x},${right.y}`}
@@ -480,18 +476,18 @@ function AngleMarker({
           <circle
             cx={labelPt.x}
             cy={labelPt.y}
-            r={15}
+            r={17}
             fill={printTheme.bg}
             stroke={printTheme.acMc}
-            strokeWidth={1.6}
+            strokeWidth={2.2}
           />
           <text
             x={labelPt.x}
             y={labelPt.y}
             textAnchor="middle"
             dominantBaseline="central"
-            fontSize={11}
-            fontWeight={700}
+            fontSize={13}
+            fontWeight={800}
             fill={printTheme.acMc}
             fontFamily="ui-sans-serif, system-ui, sans-serif"
           >
@@ -504,8 +500,8 @@ function AngleMarker({
           y={labelPt.y}
           textAnchor="middle"
           dominantBaseline="central"
-          fontSize={14}
-          fontWeight={700}
+          fontSize={16}
+          fontWeight={800}
           fill={printTheme.acMc}
           fontFamily="ui-sans-serif, system-ui, sans-serif"
         >
