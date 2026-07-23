@@ -18,8 +18,8 @@ export const printTheme = {
 } as const;
 
 export const planetPrintColors: Record<string, string> = {
-  sun: "#e67e22",
-  moon: "#f1c40f",
+  sun: "#d4a017",
+  moon: "#a8b2c1",
   mercury: "#9b59b6",
   venus: "#ff2d95",
   mars: "#e74c3c",

@@ -1,4 +1,7 @@
-/** Astrology Unicode glyphs for minimalist SVG text layers. */
+/**
+ * Astrology Unicode glyphs — used for text tables / fallbacks.
+ * Print wheel uses vector paths via `glyphPaths.ts` + `ChartGlyph`.
+ */
 
 export const SIGN_GLYPHS: Record<string, string> = {
   Aries: "♈",

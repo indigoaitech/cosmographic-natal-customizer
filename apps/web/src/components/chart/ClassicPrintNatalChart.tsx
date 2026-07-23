@@ -2,11 +2,8 @@
 
 import { useMemo } from "react";
 
-import {
-  PLANET_GLYPHS,
-  SIGN_GLYPHS,
-  SIGN_ORDER,
-} from "@/lib/chart/glyphs";
+import { ChartGlyph } from "@/components/chart/ChartGlyph";
+import { SIGN_ORDER } from "@/lib/chart/glyphs";
 import {
   CHART_CX,
   CHART_CY,
@@ -49,13 +46,15 @@ const R = {
   acMcLabel: 462,
 };
 
-/** Oversized glyphs for DTG / screen-print readability */
-const SIGN_SIZE = 50;
-const PLANET_SIZE = 34;
+/** Oversized vector glyphs for DTG / screen-print readability */
+const SIGN_SIZE = 54;
+const PLANET_SIZE = 38;
 const DEG_SIZE = 13;
 const MIN_SIZE = 11;
 const HOUSE_SIZE = 16;
-const SPREAD_GAP = 15;
+const SPREAD_GAP = 16;
+const SIGN_STROKE = 7.5;
+const PLANET_STROKE = 8;
 
 type ClassicPrintNatalChartProps = {
   chart: ChartPayload;
@@ -245,7 +244,7 @@ export function ClassicPrintNatalChart({
         })}
       </g>
 
-      {/* Large color-coded zodiac glyphs */}
+      {/* Large color-coded vector zodiac glyphs */}
       <g id="layer-zodiac">
         {SIGN_ORDER.map((sign, i) => {
           const start = i * 30;
@@ -262,18 +261,15 @@ export function ClassicPrintNatalChart({
                 stroke={printTheme.ring}
                 strokeWidth={2}
               />
-              <text
+              <ChartGlyph
+                id={sign}
+                kind="sign"
                 x={g.x}
                 y={g.y}
-                textAnchor="middle"
-                dominantBaseline="central"
-                fontSize={SIGN_SIZE}
-                fill={signPrintColors[sign] ?? printTheme.ink}
-                fontFamily="'Segoe UI Symbol','Apple Symbols','Noto Sans Symbols',sans-serif"
-                fontWeight={700}
-              >
-                {SIGN_GLYPHS[sign]}
-              </text>
+                size={SIGN_SIZE}
+                color={signPrintColors[sign] ?? printTheme.ink}
+                strokeWidth={SIGN_STROKE}
+              />
             </g>
           );
         })}
@@ -359,23 +355,20 @@ export function ClassicPrintNatalChart({
                 stroke={printTheme.bg}
                 strokeWidth={1}
               />
-              <text
+              <ChartGlyph
+                id={p.id}
+                kind="planet"
                 x={glyph.x}
                 y={glyph.y}
-                textAnchor="middle"
-                dominantBaseline="central"
-                fontSize={PLANET_SIZE}
-                fill={color}
-                fontFamily="'Segoe UI Symbol','Apple Symbols','Noto Sans Symbols',sans-serif"
-                fontWeight={700}
-              >
-                {PLANET_GLYPHS[p.id] ?? "·"}
-              </text>
+                size={PLANET_SIZE}
+                color={color}
+                strokeWidth={PLANET_STROKE}
+              />
               {p.retrograde && (
                 <text
-                  x={glyph.x + 14}
-                  y={glyph.y + 12}
-                  fontSize={11}
+                  x={glyph.x + 16}
+                  y={glyph.y + 14}
+                  fontSize={12}
                   fill={printTheme.retrograde}
                   fontFamily="ui-sans-serif, system-ui, sans-serif"
                   fontWeight={800}
