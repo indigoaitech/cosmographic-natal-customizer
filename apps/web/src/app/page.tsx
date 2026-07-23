@@ -14,12 +14,7 @@ import {
 
 const PRINT_SVG_ID = "classic-print-natal-chart";
 
-function downloadSvg(filename: string) {
-  const el = document.getElementById(PRINT_SVG_ID);
-  if (!el) return;
-  const clone = el.cloneNode(true) as SVGElement;
-  clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-  const payload = `<?xml version="1.0" encoding="UTF-8"?>\n${clone.outerHTML}`;
+function downloadBlob(payload: string, filename: string) {
   const blob = new Blob([payload], { type: "image/svg+xml;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -29,15 +24,45 @@ function downloadSvg(filename: string) {
   URL.revokeObjectURL(url);
 }
 
+/** Fallback: clone client SVG if SSR endpoint fails. */
+function downloadClientSvg(filename: string) {
+  const el = document.getElementById(PRINT_SVG_ID);
+  if (!el) return;
+  const clone = el.cloneNode(true) as SVGElement;
+  clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  downloadBlob(
+    `<?xml version="1.0" encoding="UTF-8"?>\n${clone.outerHTML}`,
+    filename,
+  );
+}
+
 export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [chart, setChart] = useState<ChartPayload | null>(null);
+  const [downloading, setDownloading] = useState(false);
 
-  const onDownload = useCallback(() => {
+  const onDownload = useCallback(async () => {
     if (!chart) return;
     const stamp = chart.meta.utc.replace(/[:.]/g, "-");
-    downloadSvg(`cosmographi-birth-map-${stamp}.svg`);
+    const filename = `cosmographi-birth-map-${stamp}.svg`;
+    setDownloading(true);
+    try {
+      // Server-side SVG (print-ready) — Astrotheme-style SSR
+      const res = await fetch("/api/chart/svg?print=1", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chart }),
+      });
+      if (!res.ok) throw new Error("SVG render failed");
+      const svg = await res.text();
+      if (!svg.includes("<svg")) throw new Error("Invalid SVG");
+      downloadBlob(svg, filename);
+    } catch {
+      downloadClientSvg(filename);
+    } finally {
+      setDownloading(false);
+    }
   }, [chart]);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
@@ -243,8 +268,13 @@ export default function HomePage() {
                       Print-ready SVG · Swiss Ephemeris
                     </p>
                   </div>
-                  <button type="button" className="cg-btn-ghost" onClick={onDownload}>
-                    Download SVG
+                  <button
+                    type="button"
+                    className="cg-btn-ghost"
+                    onClick={() => void onDownload()}
+                    disabled={downloading}
+                  >
+                    {downloading ? "Preparing SVG…" : "Download SVG"}
                   </button>
                 </div>
 

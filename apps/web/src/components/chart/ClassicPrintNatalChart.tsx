@@ -3,6 +3,10 @@
 import { useMemo } from "react";
 
 import { ChartGlyph } from "@/components/chart/ChartGlyph";
+import {
+  CLASSIC_PRINT_R as R,
+  CLASSIC_PRINT_SIZES as S,
+} from "@/lib/chart/classicPrintLayout";
 import { SIGN_ORDER } from "@/lib/chart/glyphs";
 import {
   CHART_CX,
@@ -23,38 +27,20 @@ import {
 import type { ChartPayload } from "@/lib/chart/types";
 
 /**
- * Textile-optimized classic natal wheel.
+ * Textile-optimized classic natal wheel (client preview).
+ * Print download uses server SSR: POST /api/chart/svg
  *
- * Compact wheel + wide outer margin so large exterior planet glyphs print
- * cleanly on apparel. Hierarchy (center → out):
+ * Hierarchy (center → out):
  *   aspect core → houses → zodiac → degree ruler → exterior planets
  */
-const R = {
-  /** Compact inner chart — leaves wide margin for exterior labels */
-  aspect: 118,
-  houseOuter: 192,
-  houseNum: 155,
-  zodiacInner: 192,
-  zodiacOuter: 298,
-  tickInner: 298,
-  tickOuter: 320,
-  outer: 328,
-  /** Exterior planets in the wide white margin */
-  planetElbow: 342,
-  planet: 395,
-  planetAlt: 438,
-  acMcLabel: 462,
-};
-
-/** Oversized vector glyphs for DTG / screen-print readability */
-const SIGN_SIZE = 54;
-const PLANET_SIZE = 38;
-const DEG_SIZE = 13;
-const MIN_SIZE = 11;
-const HOUSE_SIZE = 16;
-const SPREAD_GAP = 16;
-const SIGN_STROKE = 7.5;
-const PLANET_STROKE = 8;
+const SIGN_SIZE = S.sign;
+const PLANET_SIZE = S.planet;
+const DEG_SIZE = S.deg;
+const MIN_SIZE = S.min;
+const HOUSE_SIZE = S.house;
+const SPREAD_GAP = S.spreadGap;
+const SIGN_STROKE = S.signStroke;
+const PLANET_STROKE = S.planetStroke;
 
 type ClassicPrintNatalChartProps = {
   chart: ChartPayload;
