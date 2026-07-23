@@ -4,7 +4,7 @@ import Image from "next/image";
 import { FormEvent, useCallback, useState } from "react";
 
 import { ChartExplanation } from "@/components/chart/ChartExplanation";
-import { ClassicPrintNatalChart } from "@/components/chart/ClassicPrintNatalChart";
+import { SVGChartRenderer } from "@/components/chart/SVGChartRenderer";
 import type { ChartPayload } from "@/lib/chart/types";
 import {
   formatValidationError,
@@ -12,7 +12,12 @@ import {
   validateBirthInput,
 } from "@/lib/validation/birth";
 
-const PRINT_SVG_ID = "classic-print-natal-chart";
+type BirthFields = {
+  dateOfBirth: string;
+  timeOfBirth: string;
+  city: string;
+  country: string;
+};
 
 function downloadBlob(payload: string, filename: string) {
   const blob = new Blob([payload], { type: "image/svg+xml;charset=utf-8" });
@@ -24,52 +29,57 @@ function downloadBlob(payload: string, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-/** Fallback: clone client SVG if SSR endpoint fails. */
-function downloadClientSvg(filename: string) {
-  const el = document.getElementById(PRINT_SVG_ID);
-  if (!el) return;
-  const clone = el.cloneNode(true) as SVGElement;
-  clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-  downloadBlob(
-    `<?xml version="1.0" encoding="UTF-8"?>\n${clone.outerHTML}`,
-    filename,
-  );
-}
-
 export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [chart, setChart] = useState<ChartPayload | null>(null);
+  const [svgMarkup, setSvgMarkup] = useState<string | null>(null);
+  const [birth, setBirth] = useState<BirthFields | null>(null);
   const [downloading, setDownloading] = useState(false);
 
   const onDownload = useCallback(async () => {
-    if (!chart) return;
-    const stamp = chart.meta.utc.replace(/[:.]/g, "-");
-    const filename = `cosmographi-birth-map-${stamp}.svg`;
+    if (!birth) return;
+    const stamp = (chart?.meta.utc || new Date().toISOString()).replace(
+      /[:.]/g,
+      "-",
+    );
+    const filename = `natal-chart-${stamp}.svg`;
     setDownloading(true);
     try {
-      // Server-side SVG (print-ready) — Astrotheme-style SSR
       const res = await fetch("/api/chart/svg?print=1", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chart }),
+        body: JSON.stringify({
+          dateOfBirth: birth.dateOfBirth,
+          timeOfBirth: birth.timeOfBirth,
+          location: { city: birth.city, country: birth.country },
+          houseSystem: "P",
+        }),
       });
-      if (!res.ok) throw new Error("SVG render failed");
+      if (!res.ok) throw new Error("SVG download failed");
       const svg = await res.text();
       if (!svg.includes("<svg")) throw new Error("Invalid SVG");
       downloadBlob(svg, filename);
-    } catch {
-      downloadClientSvg(filename);
+    } catch (err) {
+      // Fall back to in-memory preview SVG if available
+      if (svgMarkup?.includes("<svg")) {
+        downloadBlob(svgMarkup, filename);
+      } else {
+        setError(
+          err instanceof Error ? err.message : "Could not download SVG",
+        );
+      }
     } finally {
       setDownloading(false);
     }
-  }, [chart]);
+  }, [birth, chart, svgMarkup]);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setChart(null);
+    setSvgMarkup(null);
 
     const fd = new FormData(e.currentTarget);
     const dateOfBirth = String(fd.get("dateOfBirth") || "");
@@ -78,38 +88,52 @@ export default function HomePage() {
     const country = String(fd.get("country") || "").trim();
     const timeOfBirth = normalizeBirthTime(timeRaw);
 
-    const fieldErrors = validateBirthInput({
-      dateOfBirth,
-      timeOfBirth,
-      city,
-      country,
-    });
+    const birthFields = { dateOfBirth, timeOfBirth, city, country };
+    setBirth(birthFields);
+
+    const fieldErrors = validateBirthInput(birthFields);
     if (fieldErrors.length) {
       setError(formatValidationError(fieldErrors));
       setLoading(false);
       return;
     }
 
+    const payload = {
+      dateOfBirth,
+      timeOfBirth,
+      location: { city, country },
+      houseSystem: "P",
+    };
+
     try {
-      const res = await fetch("/api/chart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          dateOfBirth,
-          timeOfBirth,
-          location: { city, country },
-          houseSystem: "P",
+      // JSON chart (explanation) + Astrotheme SVG from ephemeris in parallel
+      const [chartRes, svgRes] = await Promise.all([
+        fetch("/api/chart", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
         }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
+        fetch("/api/chart/svg", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }),
+      ]);
+
+      const chartData = await chartRes.json();
+      if (!chartRes.ok) {
         throw new Error(
-          typeof data.detail === "string"
-            ? data.detail
+          typeof chartData.detail === "string"
+            ? chartData.detail
             : "Chart calculation failed",
         );
       }
-      setChart(data as ChartPayload);
+      setChart(chartData as ChartPayload);
+
+      if (svgRes.ok) {
+        const svg = await svgRes.text();
+        if (svg.includes("<svg")) setSvgMarkup(svg);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -131,7 +155,7 @@ export default function HomePage() {
         <h1 className="sr-only">Cosmographi Birth Map Generator</h1>
         <p className="mt-5 max-w-md text-sm leading-relaxed text-[var(--color-muted)]">
           Enter birth date, time, and place. We compute your sky with Swiss
-          Ephemeris and render one classic, print-ready birth map.
+          Ephemeris and render a print-ready Astrotheme-style natal SVG.
         </p>
       </header>
 
@@ -239,8 +263,7 @@ export default function HomePage() {
           {!chart && !loading && (
             <div className="panel flex min-h-[320px] items-center justify-center border-dashed p-8 text-center">
               <p className="max-w-xs text-sm text-[var(--color-muted)]">
-                Your classic birth map will appear here — one print-ready chart,
-                no extra styles.
+                Your Astrotheme-style natal SVG will appear here after generate.
               </p>
             </div>
           )}
@@ -248,7 +271,7 @@ export default function HomePage() {
           {loading && (
             <div className="panel flex min-h-[320px] items-center justify-center p-8">
               <p className="font-mono text-xs uppercase tracking-[0.2em] text-[var(--color-cyan)]">
-                Geocoding · Swiss Ephemeris…
+                Geocoding · Swiss Ephemeris · SVG…
               </p>
             </div>
           )}
@@ -262,28 +285,35 @@ export default function HomePage() {
                       Birth map
                     </p>
                     <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--color-star)]">
-                      Classic natal chart
+                      Natal chart SVG
                     </h2>
                     <p className="text-xs text-[var(--color-muted)]">
-                      Print-ready SVG · Swiss Ephemeris
+                      Print-ready · ephemeris /v1/natal-chart-svg
                     </p>
                   </div>
                   <button
                     type="button"
                     className="cg-btn-ghost"
                     onClick={() => void onDownload()}
-                    disabled={downloading}
+                    disabled={downloading || !birth}
                   >
                     {downloading ? "Preparing SVG…" : "Download SVG"}
                   </button>
                 </div>
 
                 <div className="mx-auto w-full max-w-[640px] overflow-hidden rounded-[var(--radius-md)] bg-white shadow-[0_0_40px_rgba(0,242,255,0.08)]">
-                  <ClassicPrintNatalChart
-                    chart={chart}
-                    svgId={PRINT_SVG_ID}
-                    className="h-auto w-full"
-                  />
+                  {svgMarkup ? (
+                    <SVGChartRenderer
+                      svgMarkup={svgMarkup}
+                      title="Natal chart"
+                      className="w-full"
+                    />
+                  ) : (
+                    <p className="p-8 text-center text-sm text-neutral-500">
+                      Chart data ready — SVG preview unavailable. Try Download
+                      SVG.
+                    </p>
+                  )}
                 </div>
               </section>
 

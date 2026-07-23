@@ -44,7 +44,7 @@ class NatalChartSVGRenderer:
         ("♓", "Pisces"),      # 330-360°
     ]
 
-    # Planet glyphs
+    # Planet glyphs (ids match Swiss Ephemeris calculator)
     PLANET_GLYPHS = {
         "sun": "☉",
         "moon": "☽",
@@ -56,8 +56,12 @@ class NatalChartSVGRenderer:
         "uranus": "♅",
         "neptune": "♆",
         "pluto": "♇",
+        "true_node": "☊",
+        "mean_node": "☊",
         "north_node": "☊",
         "south_node": "☋",
+        "chiron": "⚷",
+        "lilith": "⚸",
     }
 
     # Aspect styling (Astrotheme-inspired)
@@ -117,12 +121,14 @@ class NatalChartSVGRenderer:
         stroke: str = "#000000",
         width: float = 1.0,
         opacity: float = 1.0,
+        dash: str = "",
     ):
         """Add a circle element to SVG."""
         opacity_attr = f' opacity="{opacity}"' if opacity < 1.0 else ""
+        dash_attr = f' stroke-dasharray="{dash}"' if dash else ""
         self.svg_lines.append(
             f'  <circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}" '
-            f'fill="{fill}" stroke="{stroke}" stroke-width="{width}"{opacity_attr} />'
+            f'fill="{fill}" stroke="{stroke}" stroke-width="{width}"{dash_attr}{opacity_attr} />'
         )
 
     def add_text(
