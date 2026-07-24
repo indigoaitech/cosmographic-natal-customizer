@@ -17,21 +17,20 @@ export const printTheme = {
   aspectNeutral: "#8e44ad",
 } as const;
 
-/** Planet colors matched to the Astrotheme reference wheel */
 export const planetPrintColors: Record<string, string> = {
   sun: "#F2A007",
   moon: "#C9A227",
   mercury: "#8E44AD",
   venus: "#E86AA6",
   mars: "#E23B2E",
-  jupiter: "#E8862D",
+  jupiter: "#2EB8B0",
   saturn: "#A0522D",
   uranus: "#8B1A1A",
   neptune: "#0E9E97",
   pluto: "#9C2C13",
   true_node: "#555555",
   mean_node: "#555555",
-  chiron: "#777777",
+  chiron: "#888888",
   lilith: "#444444",
 };
 

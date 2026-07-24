@@ -6,14 +6,14 @@ export const CHART_SIZE = 1000;
 export const CHART_CX = CHART_SIZE / 2;
 export const CHART_CY = CHART_SIZE / 2;
 
-/** Concentric radii — Astrotheme reference proportions (see classicPrintLayout) */
+/** Concentric radii — Astrotheme measured proportions (see classicPrintLayout) */
 export const RADII = {
-  aspect: 162,
-  houseOuter: 190,
-  zodiacInner: 190,
-  zodiacOuter: 289,
+  aspect: 181,
+  houseOuter: 200,
+  zodiacInner: 200,
+  zodiacOuter: 302,
   outer: 330,
-  planet: 375,
+  planet: 392,
   angleLabel: 462,
 } as const;
 

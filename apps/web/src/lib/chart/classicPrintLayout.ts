@@ -2,36 +2,36 @@
  * Shared layout constants for classic print natal wheel
  * (client React preview + server SVG serializer stay in sync).
  *
- * Astrotheme reference proportions (outer bold ring = 330 in a 1000 canvas):
- *   aspect web r162 → house-number band 162–190 → zodiac band 190–289
- *   → 1° degree ruler 289–322 → bold outer ring 330 → exterior planets.
+ * Measured from Astrotheme reference (510×510 rings at 85 / 142 / 155),
+ * scaled so the bold outer ring = 330 on a 1000 canvas.
+ *
+ * Stack: aspect → house-number band → zodiac → 1° ruler → outer → planets.
  */
 
 export const CLASSIC_PRINT_R = {
-  aspect: 162,
-  houseNum: 176,
-  houseOuter: 190,
-  zodiacInner: 190,
-  zodiacOuter: 289,
-  tickInner: 289,
+  aspect: 181,
+  houseNum: 190,
+  houseOuter: 200,
+  zodiacInner: 200,
+  zodiacOuter: 302,
+  tickInner: 302,
   tickOuter: 322,
   outer: 330,
-  planetElbow: 348,
-  planet: 375,
-  planetAlt: 424,
+  planetElbow: 352,
+  planet: 392,
+  planetAlt: 438,
   acMcLabel: 462,
 } as const;
 
-/** Glyph sizes matched to the reference (planets slightly smaller than signs). */
+/** Glyph sizes matched to the Astrotheme reference. */
 export const CLASSIC_PRINT_SIZES = {
-  sign: 56,
-  planet: 40,
-  deg: 20,
+  sign: 68,
+  planet: 44,
+  deg: 22,
   min: 15,
-  house: 15,
-  spreadGap: 16,
-  signStroke: 8,
-  planetStroke: 8.5,
-  /** Radial offset from planet glyph center to degree label */
-  degreeLabelOffset: 46,
+  house: 14,
+  spreadGap: 15,
+  signStroke: 9,
+  planetStroke: 9,
+  degreeLabelOffset: 42,
 } as const;
