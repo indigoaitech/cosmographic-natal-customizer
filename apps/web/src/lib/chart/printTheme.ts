@@ -17,43 +17,45 @@ export const printTheme = {
   aspectNeutral: "#8e44ad",
 } as const;
 
+/** Planet colors matched to the Astrotheme reference wheel */
 export const planetPrintColors: Record<string, string> = {
-  sun: "#d4a017",
-  moon: "#a8b2c1",
-  mercury: "#9b59b6",
-  venus: "#ff2d95",
-  mars: "#e74c3c",
-  jupiter: "#16a085",
-  saturn: "#c0392b",
-  uranus: "#922b21",
-  neptune: "#1abc9c",
-  pluto: "#e91e63",
-  true_node: "#7f8c8d",
-  mean_node: "#7f8c8d",
-  chiron: "#95a5a6",
-  lilith: "#5d6d7e",
+  sun: "#F2A007",
+  moon: "#C9A227",
+  mercury: "#8E44AD",
+  venus: "#E86AA6",
+  mars: "#E23B2E",
+  jupiter: "#E8862D",
+  saturn: "#A0522D",
+  uranus: "#8B1A1A",
+  neptune: "#0E9E97",
+  pluto: "#9C2C13",
+  true_node: "#555555",
+  mean_node: "#555555",
+  chiron: "#777777",
+  lilith: "#444444",
 };
 
+/** Element scheme: fire red, earth olive, air teal, water blue (Astrotheme) */
 export const signPrintColors: Record<string, string> = {
-  Aries: "#e74c3c",
-  Taurus: "#c9a227",
-  Gemini: "#3498db",
-  Cancer: "#2980b9",
-  Leo: "#e74c3c",
-  Virgo: "#7d8c3a",
-  Libra: "#3498db",
-  Scorpio: "#1a5276",
-  Sagittarius: "#e67e22",
-  Capricorn: "#1e8449",
-  Aquarius: "#2980b9",
-  Pisces: "#1a5276",
+  Aries: "#E23B2E",
+  Leo: "#E23B2E",
+  Sagittarius: "#E23B2E",
+  Taurus: "#8B8000",
+  Virgo: "#8B8000",
+  Capricorn: "#8B8000",
+  Gemini: "#0E9E97",
+  Libra: "#0E9E97",
+  Aquarius: "#0E9E97",
+  Cancer: "#1E6FD9",
+  Scorpio: "#1E6FD9",
+  Pisces: "#1E6FD9",
 };
 
-/** High-contrast aspect colors for apparel print readability */
+/** Astrotheme aspect convention: red = hard, blue = soft */
 export const printAspectColors: Record<string, string> = {
-  conjunction: "#8e44ad",
-  opposition: "#e74c3c",
-  square: "#e74c3c",
-  trine: "#2980b9",
-  sextile: "#27ae60",
+  conjunction: "#3BA13B",
+  opposition: "#E53935",
+  square: "#E53935",
+  trine: "#1E88E5",
+  sextile: "#1E88E5",
 };

@@ -182,22 +182,22 @@ export function renderClassicNatalSvg(chart: ChartPayload): string {
     `<rect x="0" y="0" width="${CHART_SIZE}" height="${CHART_SIZE}" fill="${printTheme.bg}"/>`,
   );
 
-  // Rings
+  // Rings (Astrotheme): aspect → house band → zodiac → ruler → bold outer
   layers.push(`<g id="layer-rings" fill="none" stroke="${printTheme.ring}">`);
   layers.push(
-    `<circle cx="${CHART_CX}" cy="${CHART_CY}" r="${R.aspect}" stroke-width="3"/>`,
+    `<circle cx="${CHART_CX}" cy="${CHART_CY}" r="${R.aspect}" stroke-width="2"/>`,
   );
   layers.push(
-    `<circle cx="${CHART_CX}" cy="${CHART_CY}" r="${R.houseOuter}" stroke-width="2.75"/>`,
+    `<circle cx="${CHART_CX}" cy="${CHART_CY}" r="${R.zodiacInner}" stroke-width="1.2"/>`,
   );
   layers.push(
-    `<circle cx="${CHART_CX}" cy="${CHART_CY}" r="${R.zodiacOuter}" stroke-width="2.75"/>`,
+    `<circle cx="${CHART_CX}" cy="${CHART_CY}" r="${R.zodiacOuter}" stroke-width="1.2"/>`,
   );
   layers.push(
-    `<circle cx="${CHART_CX}" cy="${CHART_CY}" r="${R.outer}" stroke-width="3.5"/>`,
+    `<circle cx="${CHART_CX}" cy="${CHART_CY}" r="${R.tickOuter}" stroke-width="1.2"/>`,
   );
   layers.push(
-    `<circle cx="${CHART_CX}" cy="${CHART_CY}" r="5" fill="${printTheme.ink}" stroke="none"/>`,
+    `<circle cx="${CHART_CX}" cy="${CHART_CY}" r="${R.outer}" stroke-width="3"/>`,
   );
   layers.push(`</g>`);
 
@@ -221,21 +221,20 @@ export function renderClassicNatalSvg(chart: ChartPayload): string {
   }
   layers.push(`</g>`);
 
-  // Houses
+  // House cusps + small numbers in the narrow band (Astrotheme format)
   layers.push(`<g id="layer-houses">`);
   for (const h of chart.houses) {
-    const isAngle = h.house === 1 || h.house === 10;
-    const spoke = polarLine(h.cusp, asc, R.aspect, R.houseOuter);
+    const isAngle = h.house === 1 || h.house === 4 || h.house === 7 || h.house === 10;
+    const spoke = polarLine(h.cusp, asc, R.aspect, R.zodiacOuter);
     const next = chart.houses.find((x) => x.house === (h.house % 12) + 1);
     const nextCusp = next ? next.cusp : norm360(h.cusp + 30);
-    const span = norm360(nextCusp - h.cusp) || 30;
-    const numLon = midLongitude(h.cusp, norm360(h.cusp + span * 0.55));
+    const numLon = midLongitude(h.cusp, nextCusp);
     const num = lonToPoint(numLon, asc, R.houseNum);
     layers.push(
-      `<line x1="${spoke.x1}" y1="${spoke.y1}" x2="${spoke.x2}" y2="${spoke.y2}" stroke="${printTheme.ring}" stroke-width="${isAngle ? 3.2 : 2.4}"${isAngle ? "" : ' stroke-dasharray="7 4"'}/>`,
+      `<line x1="${spoke.x1}" y1="${spoke.y1}" x2="${spoke.x2}" y2="${spoke.y2}" stroke="${printTheme.ring}" stroke-width="${isAngle ? 2.4 : 1.1}"/>`,
     );
     layers.push(
-      `<text x="${num.x}" y="${num.y}" text-anchor="middle" dominant-baseline="central" font-size="${S.house}" fill="${printTheme.ink}" font-family="ui-sans-serif,system-ui,sans-serif" font-weight="800">${h.house}</text>`,
+      `<text x="${num.x}" y="${num.y}" text-anchor="middle" dominant-baseline="central" font-size="${S.house}" fill="${printTheme.inkSoft}" font-family="ui-sans-serif,system-ui,sans-serif" font-weight="700">${h.house}</text>`,
     );
   }
   layers.push(`</g>`);
@@ -305,8 +304,8 @@ export function renderClassicNatalSvg(chart: ChartPayload): string {
     const vx = glyph.x - CHART_CX;
     const vy = glyph.y - CHART_CY;
     const len = Math.hypot(vx, vy) || 1;
-    const lx = glyph.x + (vx / len) * 26;
-    const ly = glyph.y + (vy / len) * 26;
+    const lx = glyph.x + (vx / len) * S.degreeLabelOffset;
+    const ly = glyph.y + (vy / len) * S.degreeLabelOffset;
 
     const def =
       PLANET_PATHS[p.id] ?? PLANET_PATHS[p.id.replace("mean_", "true_")];

@@ -31,16 +31,16 @@ import type { ChartPayload } from "@/lib/chart/types";
  * Print download uses server SSR: POST /api/chart/svg
  *
  * Hierarchy (center → out):
- *   aspect core → houses → zodiac → degree ruler → exterior planets
+ *   aspect ⌀10u → zodiac 4u → tick ring 1u → planets/degrees 7u
  */
 const SIGN_SIZE = S.sign;
 const PLANET_SIZE = S.planet;
 const DEG_SIZE = S.deg;
 const MIN_SIZE = S.min;
-const HOUSE_SIZE = S.house;
 const SPREAD_GAP = S.spreadGap;
 const SIGN_STROKE = S.signStroke;
 const PLANET_STROKE = S.planetStroke;
+const DEG_OFFSET = S.degreeLabelOffset;
 
 type ClassicPrintNatalChartProps = {
   chart: ChartPayload;
@@ -151,19 +151,13 @@ export function ClassicPrintNatalChart({
 
       <rect x={0} y={0} width={CHART_SIZE} height={CHART_SIZE} fill={printTheme.bg} />
 
-      {/* Bold concentric rings */}
+      {/* Rings (Astrotheme): aspect → house band → zodiac → ruler → bold outer */}
       <g id="layer-rings" fill="none" stroke={printTheme.ring}>
-        <circle cx={CHART_CX} cy={CHART_CY} r={R.aspect} strokeWidth={3} />
-        <circle cx={CHART_CX} cy={CHART_CY} r={R.houseOuter} strokeWidth={2.75} />
-        <circle cx={CHART_CX} cy={CHART_CY} r={R.zodiacOuter} strokeWidth={2.75} />
-        <circle cx={CHART_CX} cy={CHART_CY} r={R.outer} strokeWidth={3.5} />
-        <circle
-          cx={CHART_CX}
-          cy={CHART_CY}
-          r={5}
-          fill={printTheme.ink}
-          stroke="none"
-        />
+        <circle cx={CHART_CX} cy={CHART_CY} r={R.aspect} strokeWidth={2} />
+        <circle cx={CHART_CX} cy={CHART_CY} r={R.zodiacInner} strokeWidth={1.2} />
+        <circle cx={CHART_CX} cy={CHART_CY} r={R.zodiacOuter} strokeWidth={1.2} />
+        <circle cx={CHART_CX} cy={CHART_CY} r={R.tickOuter} strokeWidth={1.2} />
+        <circle cx={CHART_CX} cy={CHART_CY} r={R.outer} strokeWidth={3} />
       </g>
 
       {/* Bold, colorful aspect web */}
@@ -191,15 +185,15 @@ export function ClassicPrintNatalChart({
         })}
       </g>
 
-      {/* House cusps + bold numbers */}
+      {/* House cusps + small numbers in the narrow band (Astrotheme format) */}
       <g id="layer-houses">
         {chart.houses.map((h) => {
-          const isAngle = h.house === 1 || h.house === 10;
-          const spoke = polarLine(h.cusp, asc, R.aspect, R.houseOuter);
+          const isAngle =
+            h.house === 1 || h.house === 4 || h.house === 7 || h.house === 10;
+          const spoke = polarLine(h.cusp, asc, R.aspect, R.zodiacOuter);
           const next = chart.houses.find((x) => x.house === (h.house % 12) + 1);
           const nextCusp = next ? next.cusp : norm360(h.cusp + 30);
-          const span = norm360(nextCusp - h.cusp) || 30;
-          const numLon = midLongitude(h.cusp, norm360(h.cusp + span * 0.55));
+          const numLon = midLongitude(h.cusp, nextCusp);
           const num = lonToPoint(numLon, asc, R.houseNum);
           return (
             <g key={`house-${h.house}`}>
@@ -209,8 +203,7 @@ export function ClassicPrintNatalChart({
                 x2={spoke.x2}
                 y2={spoke.y2}
                 stroke={printTheme.ring}
-                strokeWidth={isAngle ? 3.2 : 2.4}
-                strokeDasharray={isAngle ? undefined : "7 4"}
+                strokeWidth={isAngle ? 2.4 : 1.1}
                 opacity={1}
               />
               <text
@@ -218,10 +211,10 @@ export function ClassicPrintNatalChart({
                 y={num.y}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fontSize={HOUSE_SIZE}
-                fill={printTheme.ink}
+                fontSize={S.house}
+                fill={printTheme.inkSoft}
                 fontFamily="ui-sans-serif, system-ui, sans-serif"
-                fontWeight={800}
+                fontWeight={700}
               >
                 {h.house}
               </text>
@@ -319,8 +312,8 @@ export function ClassicPrintNatalChart({
           const vx = glyph.x - CHART_CX;
           const vy = glyph.y - CHART_CY;
           const len = Math.hypot(vx, vy) || 1;
-          const lx = glyph.x + (vx / len) * 26;
-          const ly = glyph.y + (vy / len) * 26;
+          const lx = glyph.x + (vx / len) * DEG_OFFSET;
+          const ly = glyph.y + (vy / len) * DEG_OFFSET;
 
           return (
             <g key={p.id}>

@@ -6,14 +6,14 @@ export const CHART_SIZE = 1000;
 export const CHART_CX = CHART_SIZE / 2;
 export const CHART_CY = CHART_SIZE / 2;
 
-/** Concentric radii — compact wheel + wide exterior planet margin (textile) */
+/** Concentric radii — Astrotheme reference proportions (see classicPrintLayout) */
 export const RADII = {
-  aspect: 118,
-  houseOuter: 192,
-  zodiacInner: 192,
-  zodiacOuter: 298,
-  outer: 328,
-  planet: 395,
+  aspect: 162,
+  houseOuter: 190,
+  zodiacInner: 190,
+  zodiacOuter: 289,
+  outer: 330,
+  planet: 375,
   angleLabel: 462,
 } as const;
 
@@ -29,6 +29,7 @@ export function norm360(deg: number): number {
 /**
  * Ecliptic longitude → SVG point.
  * When lon === ascendant, point sits on the left (west).
+ * Increasing longitude runs counter-clockwise (house 1 below the AC).
  */
 export function lonToPoint(
   lon: number,
@@ -40,7 +41,7 @@ export function lonToPoint(
   const theta = degToRad(ascendant - lon);
   return {
     x: cx - radius * Math.cos(theta),
-    y: cy + radius * Math.sin(theta),
+    y: cy - radius * Math.sin(theta),
     theta,
   };
 }
